@@ -5,6 +5,54 @@
       <p>Visual and interactive math learning tools for dyscalculia</p>
     </div>
     
+    <!-- AI Math Assistant (Main Focus) -->
+    <div class="content-section">
+      <div class="ai-support">
+        <h2>AI Math Assistant</h2>
+        <p>Get personalized help with math concepts and problems</p>
+        
+        <div class="ai-input">
+          <textarea 
+            v-model="aiPrompt" 
+            placeholder="Describe a math problem you're working on, or ask for help with a math concept..."
+            rows="4"
+          ></textarea>
+          
+          <div class="ai-options">
+            <div class="help-options">
+              <label>
+                <input type="checkbox" v-model="aiOptions.visual">
+                Include visual explanations
+              </label>
+              <label>
+                <input type="checkbox" v-model="aiOptions.stepByStep">
+                Show step-by-step solution
+              </label>
+              <label>
+                <input type="checkbox" v-model="aiOptions.simplified">
+                Use simplified language
+              </label>
+            </div>
+            
+            <button @click="getAIHelp" :disabled="!aiPrompt.trim() || isLoadingAI">
+              Get Math Help
+            </button>
+          </div>
+        </div>
+        
+        <div v-if="isLoadingAI" class="loading">
+          <div class="loading-spinner"></div>
+          <p>Processing your request...</p>
+        </div>
+        
+        <div v-if="aiResponse" class="ai-response">
+          <h3>Math Assistant Response</h3>
+          <div v-html="aiResponse"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Interactive Math Tools (Secondary) -->
     <div class="content-section">
       <div class="math-tools">
         <h2>Visual Number Tools</h2>
@@ -128,7 +176,8 @@
               </div>
             </div>
           </div>
-                    <!-- Counting Blocks Tool -->
+          
+          <!-- Counting Blocks Tool -->
           <div v-if="activeToolTab === 'countingBlocks'" class="counting-blocks-tool">
             <h3>Visual Counting Blocks</h3>
             <p>Use visual blocks to understand numbers and operations</p>
@@ -260,137 +309,6 @@
         </div>
       </div>
     </div>
-    
-    <div class="content-section">
-      <div class="dyscalculia-practice">
-        <h2>Math Practice Zone</h2>
-        <p>Practice math skills with dyscalculia-friendly exercises</p>
-        
-        <div class="practice-controls">
-          <div class="skill-selection">
-            <button 
-              v-for="skill in practiceSkills" 
-              :key="skill.id"
-              :class="{ active: currentPracticeSkill === skill.id }"
-              @click="setPracticeSkill(skill.id)"
-            >
-              {{ skill.name }}
-            </button>
-          </div>
-          
-          <div class="difficulty-selection">
-            <label>Difficulty</label>
-            <div class="difficulty-buttons">
-              <button 
-                v-for="level in difficultyLevels" 
-                :key="level.id"
-                :class="{ active: currentDifficulty === level.id }"
-                @click="setDifficulty(level.id)"
-              >
-                {{ level.name }}
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="practice-area">
-          <div v-if="!practiceStarted" class="practice-start">
-            <h3>{{ currentSkillName }} Practice</h3>
-            <p>{{ currentSkillDescription }}</p>
-            <button @click="startPractice" class="start-btn">Start Practice</button>
-          </div>
-          
-          <div v-else class="practice-exercise">
-            <div class="exercise-header">
-              <h3>{{ currentSkillName }}</h3>
-              <div class="score">Score: {{ score }} / {{ totalQuestions }}</div>
-            </div>
-            
-            <div class="problem-container">
-              <div class="problem">{{ currentProblem.question }}</div>
-              
-              <div class="visual-aid" v-if="showVisualAid">
-                <div 
-                  v-for="i in visualAidItems" 
-                  :key="`aid-${i}`"
-                  class="visual-item"
-                  :style="{ backgroundColor: selectedBlockColor }"
-                ></div>
-              </div>
-              
-              <div class="answer-input">
-                <input 
-                  type="number" 
-                  v-model.number="userAnswer" 
-                  placeholder="Your answer..." 
-                  @keyup.enter="checkAnswer"
-                  ref="answerInput"
-                >
-                <button @click="checkAnswer" :disabled="userAnswer === null">Check</button>
-              </div>
-              
-              <div v-if="showFeedback" :class="['feedback', feedbackClass]">
-                {{ feedback }}
-              </div>
-              
-              <button 
-                v-if="showNextButton" 
-                @click="nextQuestion" 
-                class="next-btn"
-              >
-                Next Question
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="content-section">
-      <div class="ai-support">
-        <h2>AI Math Assistant</h2>
-        <p>Get personalized help with math concepts and problems</p>
-        
-        <div class="ai-input">
-          <textarea 
-            v-model="aiPrompt" 
-            placeholder="Describe a math problem you're working on, or ask for help with a math concept..."
-            rows="3"
-          ></textarea>
-          
-          <div class="ai-options">
-            <button @click="getAIHelp" :disabled="!aiPrompt.trim() || isLoadingAI">
-              Get Math Help
-            </button>
-            
-            <div class="help-options">
-              <label>
-                <input type="checkbox" v-model="aiOptions.visual">
-                Include visual explanations
-              </label>
-              <label>
-                <input type="checkbox" v-model="aiOptions.stepByStep">
-                Show step-by-step solution
-              </label>
-              <label>
-                <input type="checkbox" v-model="aiOptions.simplified">
-                Use simplified language
-              </label>
-            </div>
-          </div>
-        </div>
-        
-        <div v-if="isLoadingAI" class="loading">
-          <div class="loading-spinner"></div>
-          <p>Processing your request...</p>
-        </div>
-        
-        <div v-if="aiResponse" class="ai-response">
-          <h3>Math Assistant Response</h3>
-          <div v-html="aiResponse"></div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -401,7 +319,17 @@ export default {
   name: 'Dyscalculia',
   data() {
     return {
-      // Tool tabs
+      // AI support variables
+      aiPrompt: '',
+      aiResponse: null,
+      isLoadingAI: false,
+      aiOptions: {
+        visual: true,        // Include visual explanations by default
+        stepByStep: true,    // Show step-by-step solutions by default
+        simplified: false    // Use simplified language (optional)
+      },
+      
+      // Math tools variables
       activeToolTab: 'numberLine',
       toolTabs: [
         { id: 'numberLine', name: 'Number Line' },
@@ -409,11 +337,10 @@ export default {
         { id: 'fractions', name: 'Fractions' }
       ],
       
-      // Number line tool state
+      // Number Line Tool
       numberLineSettings: {
         min: 0,
-        max: 10,
-        step: 1
+        max: 10
       },
       operations: [
         { id: 'add', symbol: '+' },
@@ -432,75 +359,28 @@ export default {
       showResult: false,
       showOperation: false,
       
-      // Counting blocks tool state
+      // Counting Blocks Tool
       blockCount: 10,
       blockGrouping: 5,
-      groupings: [2, 5, 10],
+      groupings: [1, 2, 5, 10],
+      selectedBlockColor: '#6A11CB',
       blockColors: [
-        { name: 'Purple', value: '#b19cd9' },
-        { name: 'Blue', value: '#90caf9' },
-        { name: 'Green', value: '#a5d6a7' },
-        { name: 'Orange', value: '#ffcc80' }
+        { name: 'Purple', value: '#6A11CB' },
+        { name: 'Blue', value: '#2575FC' },
+        { name: 'Green', value: '#4CAF50' },
+        { name: 'Orange', value: '#FF9800' }
       ],
-      selectedBlockColor: '#b19cd9',
       
-      // Fraction tool state
+      // Fraction Tool
       fraction: {
-        numerator: 3,
-        denominator: 4
+        numerator: 1,
+        denominator: 2
       },
       currentFractionViz: 'circle',
       fractionVisualizations: [
         { id: 'circle', name: 'Pie Chart' },
         { id: 'bar', name: 'Bar Model' }
-      ],
-      
-      // Practice zone state
-      practiceSkills: [
-        { 
-          id: 'numberSense', 
-          name: 'Number Sense',
-          description: 'Practice counting, comparing, and estimating numbers.'
-        },
-        { 
-          id: 'addition', 
-          name: 'Addition',
-          description: 'Practice adding numbers with visual supports.'
-        },
-        { 
-          id: 'subtraction', 
-          name: 'Subtraction',
-          description: 'Practice subtracting numbers with visual supports.'
-        }
-      ],
-      currentPracticeSkill: 'numberSense',
-      difficultyLevels: [
-        { id: 'easy', name: 'Easy' },
-        { id: 'medium', name: 'Medium' },
-        { id: 'hard', name: 'Hard' }
-      ],
-      currentDifficulty: 'easy',
-      practiceStarted: false,
-      currentProblem: null,
-      userAnswer: null,
-      showFeedback: false,
-      feedback: '',
-      feedbackClass: '',
-      score: 0,
-      totalQuestions: 0,
-      showNextButton: false,
-      showVisualAid: true,
-      visualAidItems: 0,
-      
-      // AI support
-      aiPrompt: '',
-      aiResponse: null,
-      isLoadingAI: false,
-      aiOptions: {
-        visual: true,
-        stepByStep: true,
-        simplified: true
-      }
+      ]
     }
   },
   computed: {
@@ -518,98 +398,71 @@ export default {
     },
     operationArrowWidth() {
       if (this.currentOperation === 'add') {
-        return Math.abs(this.calculatePositionPercentage(this.operationValues.second));
+        const startPos = this.firstValuePosition;
+        const endPos = this.resultPosition;
+        return Math.abs(endPos - startPos);
       } else if (this.currentOperation === 'subtract') {
-        return Math.abs(this.calculatePositionPercentage(this.operationValues.second));
+        const startPos = this.firstValuePosition;
+        const endPos = this.resultPosition;
+        return Math.abs(startPos - endPos);
       }
       return 0;
     },
     visualBlocks() {
-      if (this.blockCount <= 0 || this.blockGrouping <= 0) return [];
-      
       const groups = [];
-      const fullGroups = Math.floor(this.blockCount / this.blockGrouping);
-      const remainder = this.blockCount % this.blockGrouping;
+      let remaining = this.blockCount;
       
-      // Add full groups
-      for (let i = 0; i < fullGroups; i++) {
-        groups.push(Array(this.blockGrouping).fill(1));
-      }
-      
-      // Add remainder group if any
-      if (remainder > 0) {
-        groups.push(Array(remainder).fill(1));
+      while (remaining > 0) {
+        const groupSize = Math.min(this.blockGrouping, remaining);
+        groups.push(groupSize);
+        remaining -= groupSize;
       }
       
       return groups;
     },
     fractionDecimal() {
-      if (this.fraction.denominator === 0) return 0;
-      return this.fraction.numerator / this.fraction.denominator;
+      return this.fraction.numerator / (this.fraction.denominator || 1);
     },
     fractionCircleSlices() {
       const slices = [];
-      const total = this.fraction.denominator || 1;
-      const angle = 360 / total;
+      const denom = this.fraction.denominator || 1;
+      const angleStep = 360 / denom;
       
-      for (let i = 0; i < total; i++) {
-        const startAngle = i * angle - 90; // Start at top
-        const endAngle = (i + 1) * angle - 90;
-        
-        const startRad = (startAngle * Math.PI) / 180;
-        const endRad = (endAngle * Math.PI) / 180;
-        
-        const x1 = 50 + 40 * Math.cos(startRad);
-        const y1 = 50 + 40 * Math.sin(startRad);
-        const x2 = 50 + 40 * Math.cos(endRad);
-        const y2 = 50 + 40 * Math.sin(endRad);
-        
-        const largeArcFlag = angle > 180 ? 1 : 0;
-        
-        const path = `M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
-        
+      for (let i = 0; i < denom; i++) {
+        const startAngle = i * angleStep;
+        const endAngle = (i + 1) * angleStep;
+        const path = this.describeArc(50, 50, 45, startAngle, endAngle);
         slices.push({ path });
       }
       
       return slices;
-    },
-    currentSkillName() {
-      const skill = this.practiceSkills.find(s => s.id === this.currentPracticeSkill);
-      return skill ? skill.name : '';
-    },
-    currentSkillDescription() {
-      const skill = this.practiceSkills.find(s => s.id === this.currentPracticeSkill);
-      return skill ? skill.description : '';
     }
   },
   methods: {
     updateNumberLine() {
-      // Create markers based on range settings
       this.numberLineMarkers = [];
       const range = this.numberLineSettings.max - this.numberLineSettings.min;
-      const step = Math.max(1, Math.floor(range / 10)); // Use at most 10 markers
+      const step = range <= 20 ? 1 : Math.ceil(range / 10);
       
       for (let i = this.numberLineSettings.min; i <= this.numberLineSettings.max; i += step) {
+        const position = this.calculatePositionPercentage(i);
         this.numberLineMarkers.push({
           value: i,
-          position: this.calculatePositionPercentage(i)
-        });
-      }
-      
-      // Always include max value as marker if not already included
-      if ((this.numberLineSettings.max - this.numberLineSettings.min) % step !== 0) {
-        this.numberLineMarkers.push({
-          value: this.numberLineSettings.max,
-          position: 100
+          position
         });
       }
     },
+    
     calculatePositionPercentage(value) {
-      const range = this.numberLineSettings.max - this.numberLineSettings.min;
-      if (range === 0) return 0;
+      const min = this.numberLineSettings.min;
+      const max = this.numberLineSettings.max;
+      const range = max - min;
       
-      return ((value - this.numberLineSettings.min) / range) * 100;
+      if (range === 0) return 50;
+      
+      return ((value - min) / range) * 100;
     },
+    
     calculateResult() {
       if (this.operationValues.first === null || this.operationValues.second === null) {
         return;
@@ -618,7 +471,7 @@ export default {
       const a = this.operationValues.first;
       const b = this.operationValues.second;
       
-      switch (this.currentOperation) {
+      switch(this.currentOperation) {
         case 'add':
           this.calculatedResult = a + b;
           break;
@@ -629,149 +482,65 @@ export default {
           this.calculatedResult = a * b;
           break;
         case 'divide':
-          this.calculatedResult = b !== 0 ? a / b : NaN;
+          this.calculatedResult = b !== 0 ? a / b : null;
           break;
       }
       
-      // Show points and operation on number line
       this.showFirstValue = true;
       this.showResult = true;
       this.showOperation = true;
     },
+    
     incrementBlocks() {
-      this.blockCount = Math.min(100, this.blockCount + 1);
+      if (this.blockCount < 100) {
+        this.blockCount++;
+      }
     },
+    
     decrementBlocks() {
-      this.blockCount = Math.max(1, this.blockCount - 1);
-    },
-    setPracticeSkill(skillId) {
-      this.currentPracticeSkill = skillId;
-      this.resetPractice();
-    },
-    setDifficulty(difficultyId) {
-      this.currentDifficulty = difficultyId;
-      this.resetPractice();
-    },
-    resetPractice() {
-      this.practiceStarted = false;
-      this.currentProblem = null;
-      this.userAnswer = null;
-      this.showFeedback = false;
-      this.feedback = '';
-      this.score = 0;
-      this.totalQuestions = 0;
-      this.showNextButton = false;
-    },
-    startPractice() {
-      this.practiceStarted = true;
-      this.generateProblem();
-      this.totalQuestions = 0;
-      this.score = 0;
-    },
-    generateProblem() {
-      let problem = { question: '', answer: 0 };
-      let visualItems = 0;
-      
-      // Generate problem based on skill and difficulty
-      if (this.currentPracticeSkill === 'numberSense') {
-        if (this.currentDifficulty === 'easy') {
-          // Count objects (1-10)
-          visualItems = Math.floor(Math.random() * 5) + 1;
-          problem.question = `How many objects do you see?`;
-          problem.answer = visualItems;
-        } else if (this.currentDifficulty === 'medium') {
-          // Count objects (5-20)
-          visualItems = Math.floor(Math.random() * 15) + 5;
-          problem.question = `How many objects do you see?`;
-          problem.answer = visualItems;
-        } else {
-          // Compare numbers
-          const a = Math.floor(Math.random() * 50) + 1;
-          const b = Math.floor(Math.random() * 50) + 1;
-          problem.question = `Which number is larger: ${a} or ${b}?`;
-          problem.answer = Math.max(a, b);
-          visualItems = 0; // No visual aid for this type
-          this.showVisualAid = false;
-        }
-      } else if (this.currentPracticeSkill === 'addition') {
-        let a, b;
-        if (this.currentDifficulty === 'easy') {
-          a = Math.floor(Math.random() * 5) + 1;
-          b = Math.floor(Math.random() * 5) + 1;
-        } else if (this.currentDifficulty === 'medium') {
-          a = Math.floor(Math.random() * 10) + 1;
-          b = Math.floor(Math.random() * 10) + 1;
-        } else {
-          a = Math.floor(Math.random() * 20) + 10;
-          b = Math.floor(Math.random() * 20) + 10;
-        }
-        problem.question = `${a} + ${b} = ?`;
-        problem.answer = a + b;
-        visualItems = a + b;
-      } else if (this.currentPracticeSkill === 'subtraction') {
-        let a, b;
-        if (this.currentDifficulty === 'easy') {
-          b = Math.floor(Math.random() * 5) + 1;
-          a = b + Math.floor(Math.random() * 5) + 1;
-        } else if (this.currentDifficulty === 'medium') {
-          b = Math.floor(Math.random() * 10) + 1;
-          a = b + Math.floor(Math.random() * 10) + 1;
-        } else {
-          b = Math.floor(Math.random() * 20) + 5;
-          a = b + Math.floor(Math.random() * 20) + 5;
-        }
-        problem.question = `${a} - ${b} = ?`;
-        problem.answer = a - b;
-        visualItems = a;
+      if (this.blockCount > 1) {
+        this.blockCount--;
       }
-      
-      this.currentProblem = problem;
-      this.visualAidItems = visualItems;
-      this.showVisualAid = visualItems > 0;
-      this.userAnswer = null;
-      this.showFeedback = false;
-      this.showNextButton = false;
-      
-      this.$nextTick(() => {
-        if (this.$refs.answerInput) {
-          this.$refs.answerInput.focus();
-        }
-      });
     },
-    checkAnswer() {
-      if (this.userAnswer === null) return;
+    
+    describeArc(x, y, radius, startAngle, endAngle) {
+      const start = this.polarToCartesian(x, y, radius, endAngle);
+      const end = this.polarToCartesian(x, y, radius, startAngle);
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
       
-      this.totalQuestions++;
-      this.showFeedback = true;
-      
-      if (Number(this.userAnswer) === Number(this.currentProblem.answer)) {
-        this.feedback = 'Correct! Well done!';
-        this.feedbackClass = 'correct';
-        this.score++;
-      } else {
-        this.feedback = `Not quite right. The correct answer is ${this.currentProblem.answer}.`;
-        this.feedbackClass = 'incorrect';
-      }
-      
-      this.showNextButton = true;
+      return [
+        "M", x, y,
+        "L", start.x, start.y,
+        "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y,
+        "Z"
+      ].join(" ");
     },
-    nextQuestion() {
-      this.generateProblem();
+    
+    polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+      const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+      return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+      };
     },
+    
     async getAIHelp() {
       if (!this.aiPrompt.trim() || this.isLoadingAI) return;
       
       this.isLoadingAI = true;
       
       try {
-        // Prepare prompt with dyscalculia context
-        let prompt = this.aiPrompt;
+        // Create a prompt that specifies the needs of someone with dyscalculia
+        const prompt = `Please explain this math concept or solve this problem for someone with dyscalculia: ${this.aiPrompt}
         
-        // Add instructions for the AI
-        prompt = `${prompt} (Please provide a dyscalculia-friendly explanation with concrete examples and simple language)`;
+        ${this.aiOptions.visual ? 'Include visual explanations using text-based diagrams or descriptions.' : ''}
+        ${this.aiOptions.stepByStep ? 'Show all steps clearly with explanations for each step.' : ''}
+        ${this.aiOptions.simplified ? 'Use simplified language and avoid complex math terminology where possible.' : ''}
+        
+        Focus on building number sense, make connections to real-world examples, and use concrete representations.`;
         
         const response = await axios.post('/api/assistant', {
-          prompt,
+          prompt: prompt,
           learning_preferences: {
             visual_aids: this.aiOptions.visual,
             structured_format: this.aiOptions.stepByStep,
@@ -779,10 +548,15 @@ export default {
           }
         });
         
-        this.aiResponse = response.data.response;
+        // Clean up the response by removing code block markers
+        let cleanedResponse = response.data.response;
+        cleanedResponse = cleanedResponse.replace(/```html/g, '');
+        cleanedResponse = cleanedResponse.replace(/```/g, '');
+        
+        this.aiResponse = cleanedResponse;
       } catch (error) {
         console.error('Error getting AI help:', error);
-        this.aiResponse = '<p>Sorry, there was an error processing your request. Please try again later.</p>';
+        this.aiResponse = '<p>Sorry, there was an error processing your request. Please try again.</p>';
       } finally {
         this.isLoadingAI = false;
       }
@@ -795,6 +569,12 @@ export default {
 </script>
 
 <style scoped>
+
+input, textarea, select {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
 .dyscalculia-container {
   max-width: 100%;
 }
@@ -821,614 +601,7 @@ export default {
   margin-bottom: 30px;
 }
 
-.math-tools h2 {
-  color: #6A11CB;
-  margin-bottom: 5px;
-}
-
-.math-tools p {
-  color: #666;
-  margin-bottom: 20px;
-  font-size: 0.95rem;
-}
-
-.tools-tabs {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
-}
-
-.tools-tabs button {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
-  border-radius: 25px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.tools-tabs button.active {
-  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
-  color: white;
-  border-color: transparent;
-}
-
-/* Number line tool styles */
-.number-line-tool h3, .counting-blocks-tool h3, .fractions-tool h3 {
-  color: #6A11CB;
-  margin-bottom: 10px;
-}
-
-.number-line-controls, .blocks-controls, .fraction-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 25px;
-  margin-bottom: 30px;
-}
-
-.control-group {
-  min-width: 180px;
-}
-
-.control-group label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 500;
-}
-
-.range-inputs {
-  display: flex;
-  gap: 15px;
-}
-
-.number-input {
-  flex: 1;
-}
-
-.number-input label {
-  font-size: 0.9rem;
-  font-weight: normal;
-  margin-bottom: 5px;
-}
-
-.number-input input, .value-inputs input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.operation-selection, .grouping-selection, .visualization-selection {
-  display: flex;
-  gap: 5px;
-}
-
-.operation-selection button, .grouping-selection button, .visualization-selection button {
-  padding: 8px 12px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  flex: 1;
-  font-size: 1rem;
-  transition: all 0.2s;
-}
-
-.operation-selection button.active, 
-.grouping-selection button.active, 
-.visualization-selection button.active {
-  background: #6A11CB;
-  color: white;
-  border-color: #6A11CB;
-}
-
-.value-inputs {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.operation-symbol {
-  font-size: 1.2rem;
-  font-weight: 500;
-  width: 20px;
-  text-align: center;
-}
-
-.calculate-btn {
-  padding: 8px 15px;
-  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.number-line-visualization {
-  margin-top: 20px;
-  padding: 20px 0;
-}
-
-.number-line {
-  position: relative;
-  height: 100px;
-  margin: 50px 10px 80px;
-}
-
-.line {
-  position: absolute;
-  top: 50px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: #333;
-}
-
-.markers {
-  position: relative;
-}
-
-.marker {
-  position: absolute;
-  transform: translateX(-50%);
-}
-
-.mark {
-  width: 2px;
-  height: 10px;
-  background-color: #333;
-  position: absolute;
-  top: 46px;
-  left: 0;
-}
-
-.value {
-  position: absolute;
-  top: 60px;
-  width: 40px;
-  text-align: center;
-  transform: translateX(-50%);
-}
-
-.point {
-  position: absolute;
-  transform: translateX(-50%);
-}
-
-.point-dot {
-  width: 12px;
-  height: 12px;
-  background-color: #6A11CB;
-  border-radius: 50%;
-  position: absolute;
-  top: 46px;
-  left: 0;
-  transform: translate(-50%, -50%);
-}
-
-.first-value .point-dot {
-  background-color: #2196F3;
-}
-
-.result .point-dot {
-  background-color: #4CAF50;
-}
-
-.point-label {
-  position: absolute;
-  top: 25px;
-  font-weight: 500;
-  background: white;
-  padding: 3px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-  transform: translateX(-50%);
-}
-
-.first-value .point-label {
-  color: #2196F3;
-}
-
-.result .point-label {
-  color: #4CAF50;
-}
-
-.operation-arrow {
-  position: absolute;
-  top: 46px;
-  height: 2px;
-  background-color: transparent;
-}
-
-.arrow-line {
-  height: 2px;
-  background-color: #FF9800;
-  width: 100%;
-}
-
-.arrow-head {
-  position: absolute;
-  right: -8px;
-  top: -4px;
-  width: 0;
-  height: 0;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-left: 8px solid #FF9800;
-}
-
-.reverse .arrow-head {
-  right: auto;
-  left: -8px;
-  border-left: none;
-  border-right: 8px solid #FF9800;
-}
-
-.arrow-label {
-  position: absolute;
-  top: -25px;
-  right: 0;
-  font-weight: 500;
-  color: #FF9800;
-  transform: translateX(50%);
-  background: white;
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-
-.reverse .arrow-label {
-  right: auto;
-  left: 0;
-  transform: translateX(-50%);
-}
-
-/* Counting blocks tool styles */
-.counter-input {
-  display: flex;
-  align-items: center;
-}
-
-.counter-btn {
-  width: 32px;
-  height: 32px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.counter-input input {
-  width: 60px;
-  height: 32px;
-  text-align: center;
-  border: 1px solid #ddd;
-  border-left: none;
-  border-right: none;
-}
-
-.color-selection {
-  display: flex;
-  gap: 10px;
-}
-
-.color-option {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.2s;
-  border: 2px solid transparent;
-}
-
-.color-option:hover {
-  transform: scale(1.1);
-}
-
-.color-option.active {
-  border-color: #6A11CB;
-  transform: scale(1.1);
-}
-
-.blocks-visualization {
-  margin-top: 20px;
-}
-
-.total-count {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.block-groups {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 25px;
-  justify-content: center;
-}
-
-.block-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  max-width: 250px;
-  background: #f8f8f8;
-  padding: 15px;
-  border-radius: 8px;
-  position: relative;
-}
-
-.block {
-  width: 30px;
-  height: 30px;
-  border-radius: 4px;
-}
-
-.group-label {
-  position: absolute;
-  bottom: -25px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-/* Fraction tool styles */
-.fraction-input {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  max-width: 150px;
-}
-
-.fraction-input input {
-  width: 50px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.fraction-divider {
-  width: 20px;
-  height: 2px;
-  background-color: #333;
-}
-
-.fraction-visualization {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.fraction-display {
-  margin-top: 20px;
-  font-size: 1.2rem;
-  font-weight: 500;
-}
-
-.circle-visualization, .bar-visualization {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.bar-visualization {
-  width: 100%;
-  max-width: 300px;
-}
-
-.fraction-bar-container {
-  width: 100%;
-  height: 40px;
-  display: flex;
-  margin-bottom: 20px;
-}
-
-.bar-segment {
-  flex: 1;
-  height: 100%;
-  border: 1px solid white;
-  background-color: #e9e9e9;
-}
-
-.bar-segment.filled {
-  background-color: #6A11CB;
-}
-
-/* Practice zone styles */
-.dyscalculia-practice h2 {
-  color: #6A11CB;
-  margin-bottom: 5px;
-}
-
-.dyscalculia-practice > p {
-  color: #666;
-  margin-bottom: 20px;
-  font-size: 0.95rem;
-}
-
-.practice-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.skill-selection {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.skill-selection button, .difficulty-buttons button {
-  padding: 10px 15px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 25px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.skill-selection button.active, .difficulty-buttons button.active {
-  background: #6A11CB;
-  color: white;
-  border-color: #6A11CB;
-}
-
-.difficulty-selection {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.difficulty-selection label {
-  font-weight: 500;
-}
-
-.difficulty-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.practice-area {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 25px;
-}
-
-.practice-start {
-  text-align: center;
-  padding: 20px;
-}
-
-.practice-start h3 {
-  color: #6A11CB;
-  margin-bottom: 15px;
-}
-
-.practice-start p {
-  margin-bottom: 25px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.start-btn {
-  padding: 12px 25px;
-  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
-  color: white;
-  border: none;
-  border-radius: 25px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.practice-exercise {
-  padding: 10px;
-}
-
-.exercise-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.exercise-header h3 {
-  color: #6A11CB;
-}
-
-.score {
-  background: #e3f2fd;
-  padding: 5px 15px;
-  border-radius: 20px;
-  font-weight: 500;
-  color: #1976d2;
-}
-
-.problem-container {
-  max-width: 600px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.problem {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 30px;
-}
-
-.visual-aid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 30px;
-}
-
-.visual-item {
-  width: 25px;
-  height: 25px;
-  border-radius: 3px;
-}
-
-.answer-input {
-  display: flex;
-  gap: 10px;
-  max-width: 300px;
-  margin: 0 auto;
-}
-
-.answer-input input {
-  flex: 1;
-  padding: 12px 15px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  font-size: 1.1rem;
-  text-align: center;
-}
-
-.answer-input button, .next-btn {
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.feedback {
-  margin: 20px auto;
-  padding: 15px;
-  border-radius: 6px;
-  font-weight: 500;
-  max-width: 400px;
-}
-
-.feedback.correct {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.feedback.incorrect {
-  background: #ffebee;
-  color: #c62828;
-}
-
-.next-btn {
-  margin-top: 20px;
-}
-
-/* AI support styles */
+/* AI Math Assistant Section */
 .ai-support h2 {
   color: #6A11CB;
   margin-bottom: 5px;
@@ -1437,37 +610,68 @@ export default {
 .ai-support > p {
   color: #666;
   margin-bottom: 20px;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .ai-input {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .ai-input textarea {
   width: 100%;
   padding: 15px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
   resize: vertical;
-  font-size: 1rem;
-  margin-bottom: 15px;
+  min-height: 120px;
+  font-size: 16px;
 }
 
 .ai-options {
+  background: #f8f9fa;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 0 0 8px 8px;
+  border-top: none;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.help-options {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  margin-bottom: 10px;
+}
+
+.help-options label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.help-options label input {
+  margin-right: 8px;
 }
 
 .ai-options button {
-  padding: 10px 20px;
+  align-self: flex-end;
   background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
   color: white;
   border: none;
+  padding: 10px 20px;
   border-radius: 25px;
-  cursor: pointer;
   font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.ai-options button:hover {
+  opacity: 0.9;
 }
 
 .ai-options button:disabled {
@@ -1475,24 +679,11 @@ export default {
   cursor: not-allowed;
 }
 
-.help-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.help-options label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
 .loading {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 30px;
 }
 
 .loading-spinner {
@@ -1509,11 +700,16 @@ export default {
   to { transform: rotate(360deg); }
 }
 
+.loading p {
+  color: #666;
+}
+
 .ai-response {
+  margin-top: 25px;
   padding: 20px;
   background: #f9f8ff;
   border-radius: 8px;
-  margin-top: 20px;
+  border-left: 4px solid #6A11CB;
 }
 
 .ai-response h3 {
@@ -1521,23 +717,697 @@ export default {
   margin-bottom: 15px;
 }
 
+/* Math Tools Section */
+.math-tools h2 {
+  color: #6A11CB;
+  margin-bottom: 5px;
+}
+
+.math-tools > p {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+.tools-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tools-tabs button {
+  padding: 10px 20px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tools-tabs button.active {
+  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.tools-content {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+.tools-content h3 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.tools-content p {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+/* Number Line Tool */
+.number-line-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.control-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #555;
+}
+
+.range-inputs {
+  display: flex;
+  gap: 15px;
+}
+
+.number-input {
+  flex: 1;
+}
+
+.number-input label {
+  font-size: 0.9rem;
+  color: #777;
+  margin-bottom: 5px;
+}
+
+.number-input input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.operation-selection {
+  display: flex;
+  gap: 10px;
+}
+
+.operation-selection button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 5px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.operation-selection button.active {
+  background: #6A11CB;
+  color: white;
+  border-color: #6A11CB;
+}
+
+.value-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.value-inputs input {
+  width: 80px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.operation-symbol {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.calculate-btn {
+  background: #6A11CB;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.number-line-visualization {
+  margin-top: 30px;
+  padding: 20px 10px;
+}
+
+.number-line {
+  position: relative;
+  height: 150px;
+}
+
+.line {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #333;
+}
+
+.markers {
+  position: relative;
+}
+
+.marker {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.mark {
+  width: 2px;
+  height: 10px;
+  background: #333;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.value {
+  text-align: center;
+  margin-top: 5px;
+  font-size: 0.9rem;
+}
+
+.point {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  top: 35px;
+}
+
+.point.result {
+  top: 0;
+}
+
+.point-dot {
+  width: 12px;
+  height: 12px;
+  background: #6A11CB;
+  border-radius: 50%;
+}
+
+.point-label {
+  margin-top: 5px;
+  background: #6A11CB;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.operation-arrow {
+  position: absolute;
+  top: 55px;
+  height: 2px;
+  background: #2575FC;
+}
+
+.operation-arrow.reverse {
+  transform: rotate(180deg);
+  transform-origin: left center;
+}
+
+.arrow-line {
+  width: 100%;
+  height: 2px;
+  background: #2575FC;
+}
+
+.arrow-head {
+  position: absolute;
+  right: -1px;
+  top: -4px;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 10px solid #2575FC;
+}
+
+.arrow-label {
+  position: absolute;
+  top: -25px;
+  width: 100%;
+  text-align: center;
+  color: #2575FC;
+  font-weight: bold;
+}
+
+/* Counting Blocks Tool */
+.blocks-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.counter-input {
+  display: flex;
+  align-items: center;
+}
+
+.counter-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.counter-input input {
+  width: 60px;
+  text-align: center;
+  padding: 5px;
+  margin: 0 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.grouping-selection {
+  display: flex;
+  gap: 10px;
+}
+
+.grouping-selection button {
+  padding: 5px 15px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.grouping-selection button.active {
+  background: #6A11CB;
+  color: white;
+  border-color: #6A11CB;
+}
+
+.color-selection {
+  display: flex;
+  gap: 10px;
+}
+
+.color-option {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.color-option.active {
+  border-color: #333;
+  transform: scale(1.1);
+}
+
+.blocks-visualization {
+  margin-top: 20px;
+}
+
+.total-count {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.block-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.block-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 15px;
+  position: relative;
+  padding-bottom: 25px;
+  max-width: 300px;
+}
+
+.block {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+}
+
+.group-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Fraction Visualizer */
+.fraction-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.fraction-input {
+  display: flex;
+  align-items: center;
+}
+
+.fraction-input input {
+  width: 60px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.fraction-divider {
+  width: 20px;
+  height: 2px;
+  background: #333;
+  margin: 0 5px;
+}
+
+.visualization-selection {
+  display: flex;
+  gap: 10px;
+}
+
+.visualization-selection button {
+  padding: 8px 15px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.visualization-selection button.active {
+  background: #6A11CB;
+  color: white;
+  border-color: #6A11CB;
+}
+
+.fraction-visualization {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.circle-visualization, .bar-visualization {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.fraction-bar-container {
+  width: 300px;
+  height: 40px;
+  display: flex;
+}
+
+.bar-segment {
+  flex: 1;
+  height: 100%;
+  background: #e9e9e9;
+  border: 1px solid white;
+}
+
+.bar-segment.filled {
+  background: #6A11CB;
+}
+
+.fraction-display {
+  font-size: 18px;
+  color: #333;
+  margin-top: 10px;
+}
+
+/* Practice Zone */
+.dyscalculia-practice h2 {
+  color: #6A11CB;
+  margin-bottom: 5px;
+}
+
+.dyscalculia-practice > p {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+.practice-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.skill-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-selection button {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.skill-selection button.active {
+  background: #6A11CB;
+  color: white;
+  border-color: #6A11CB;
+}
+
+.difficulty-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.difficulty-selection label {
+  font-weight: 500;
+  color: #555;
+}
+
+.difficulty-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.difficulty-buttons button {
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.difficulty-buttons button.active {
+  background: #6A11CB;
+  color: white;
+  border-color: #6A11CB;
+}
+
+.practice-area {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+.practice-start {
+  text-align: center;
+  padding: 30px;
+}
+
+.practice-start h3 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.practice-start p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.start-btn {
+  padding: 12px 25px;
+  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.practice-exercise {
+  padding: 20px 0;
+}
+
+.exercise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.exercise-header h3 {
+  color: #333;
+  margin: 0;
+}
+
+.score {
+  font-weight: 600;
+  color: #6A11CB;
+}
+
+.problem-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.problem {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+.visual-aid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-width: 500px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.visual-item {
+  width: 25px;
+  height: 25px;
+  border-radius: 5px;
+}
+
+.answer-input {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.answer-input input {
+  width: 100px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.answer-input button {
+  padding: 10px 20px;
+  background: #6A11CB;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.answer-input button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.feedback {
+  margin: 20px 0;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: 500;
+}
+
+.feedback.correct {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.feedback.incorrect {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.next-btn {
+  padding: 10px 25px;
+  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
 @media (max-width: 768px) {
-  .number-line-controls, .blocks-controls, .fraction-controls {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
+  .number-line-controls,
+  .blocks-controls,
+  .fraction-controls,
   .practice-controls {
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
   }
   
-  .control-group {
-    min-width: 0;
+  .range-inputs {
+    flex-direction: column;
   }
   
-  .skill-selection, .difficulty-buttons {
+  .value-inputs {
+    flex-direction: column;
+  }
+  
+  .block-groups {
     justify-content: center;
+  }
+  
+  .ai-options {
+    align-items: stretch;
+  }
+  
+  .help-options {
+    flex-direction: column;
+  }
+  
+  .ai-options button {
+    align-self: center;
+    width: 100%;
   }
 }
 </style>

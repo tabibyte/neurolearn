@@ -2,179 +2,151 @@
   <div class="adhd-container">
     <div class="page-header">
       <h1>ADHD Learning Tools</h1>
-      <p>Focus-friendly study environment with built-in timers and structured learning</p>
+      <p>Focus-friendly study environment with AI assistance and structured learning</p>
     </div>
     
     <div class="content-section">
-      <div class="focus-tools">
-        <div class="pomodoro-timer">
-          <h2>Pomodoro Focus Timer</h2>
-          
-          <div class="timer-display">
-            <div class="time">{{ formatTime }}</div>
-            <div class="timer-label">{{ isBreak ? 'Break Time' : 'Focus Time' }}</div>
-          </div>
-          
-          <div class="timer-controls">
-            <button @click="startTimer" v-if="!timerActive">Start</button>
-            <button @click="pauseTimer" v-else>Pause</button>
-            <button @click="resetTimer">Reset</button>
-          </div>
-          
-          <div class="timer-settings">
-            <div class="setting">
-              <label>Focus Duration (minutes)</label>
-              <input type="number" v-model="focusDuration" :disabled="timerActive" min="1" max="60">
+      <div class="learning-tools">
+        <!-- Focus Tools Panel - Left Side -->
+        <div class="focus-panel">
+          <div class="pomodoro-timer">
+            <h3>Focus Timer</h3>
+            
+            <div class="timer-display">
+              <div class="time">{{ formatTime }}</div>
+              <div class="timer-label">{{ isBreak ? 'Break Time' : 'Focus Time' }}</div>
             </div>
-            <div class="setting">
-              <label>Break Duration (minutes)</label>
-              <input type="number" v-model="breakDuration" :disabled="timerActive" min="1" max="30">
+            
+            <div class="timer-controls">
+              <button @click="startTimer" v-if="!timerActive">Start</button>
+              <button @click="pauseTimer" v-else>Pause</button>
+              <button @click="resetTimer">Reset</button>
+            </div>
+            
+            <div class="timer-settings">
+              <div class="setting">
+                <label>Focus: {{ focusDuration }}m</label>
+                <input type="range" v-model="focusDuration" :disabled="timerActive" min="1" max="60">
+              </div>
+              <div class="setting">
+                <label>Break: {{ breakDuration }}m</label>
+                <input type="range" v-model="breakDuration" :disabled="timerActive" min="1" max="30">
+              </div>
+            </div>
+          </div>
+          
+          <div class="task-manager">
+            <h3>Task Breakdown</h3>
+            
+            <div class="task-input">
+              <input 
+                v-model="newTask" 
+                @keyup.enter="addTask" 
+                placeholder="Add a task..."
+              >
+              <button @click="addTask">+</button>
+            </div>
+            
+            <div class="task-list">
+              <div 
+                v-for="(task, index) in tasks" 
+                :key="index"
+                class="task-item"
+                :class="{ completed: task.completed }"
+              >
+                <label class="checkbox-container">
+                  <input type="checkbox" v-model="task.completed">
+                  <span class="checkmark"></span>
+                </label>
+                <span class="task-text">{{ task.text }}</span>
+                <button @click="removeTask(index)" class="delete-btn">×</button>
+              </div>
+              
+              <div v-if="tasks.length === 0" class="empty-tasks">
+                Add tasks to break down your work
+              </div>
             </div>
           </div>
         </div>
         
-        <div class="task-manager">
-          <h2>Task Breakdown</h2>
-          <p>Break your study session into manageable chunks</p>
+        <!-- AI Assistant - Right Side (Main Focus) -->
+        <div class="ai-assistant">
+          <h2>AI Learning Assistant</h2>
+          <p>Get personalized help with focus, organization, and learning strategies</p>
           
-          <div class="task-input">
-            <input 
-              v-model="newTask" 
-              @keyup.enter="addTask" 
-              placeholder="Add a task..."
-            >
-            <button @click="addTask">Add</button>
+          <div class="ai-input">
+            <textarea 
+              v-model="aiPrompt" 
+              placeholder="Ask for help with your learning material, request strategies to stay focused, or get assistance with organizing information..."
+              rows="5"
+            ></textarea>
+            
+            <div class="ai-options">
+              <div class="help-options">
+                <button @click="applyTemplate('explain')" class="template-btn">Explain Topic</button>
+                <button @click="applyTemplate('organize')" class="template-btn">Help Organize</button>
+                <button @click="applyTemplate('focus')" class="template-btn">Focus Strategies</button>
+              </div>
+              
+              <div class="preferences">
+                <label>
+                  <input type="checkbox" v-model="aiPreferences.structured_format">
+                  Clear steps
+                </label>
+                <label>
+                  <input type="checkbox" v-model="aiPreferences.visual_aids">
+                  Visual aids
+                </label>
+              </div>
+              
+              <button 
+                @click="getAIResponse" 
+                :disabled="!aiPrompt.trim() || isLoadingAI"
+                class="submit-btn"
+              >
+                Get Help
+              </button>
+            </div>
           </div>
           
-          <div class="task-list">
-            <div 
-              v-for="(task, index) in tasks" 
-              :key="index"
-              class="task-item"
-              :class="{ completed: task.completed }"
-            >
-              <label class="checkbox-container">
-                <input type="checkbox" v-model="task.completed">
-                <span class="checkmark"></span>
-              </label>
-              <span class="task-text">{{ task.text }}</span>
-              <button @click="removeTask(index)" class="delete-btn">×</button>
-            </div>
+          <div v-if="isLoadingAI" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Processing your request...</p>
+          </div>
+          
+          <div v-if="aiResponse" class="ai-response">
+            <h3>Response</h3>
+            <div class="response-content" v-html="aiResponse"></div>
             
-            <div v-if="tasks.length === 0" class="empty-tasks">
-              No tasks yet. Add some to get started!
+            <div class="notes-integration">
+              <button @click="saveToNotes" class="save-notes-btn">Save to Notes</button>
             </div>
           </div>
         </div>
       </div>
     </div>
     
-    <div class="content-section">
-      <div class="study-workspace">
-        <h2>Learning Workspace</h2>
-        
-        <div class="workspace-tabs">
-          <button 
-            @click="activeTab = 'notes'" 
-            :class="{ active: activeTab === 'notes' }"
-          >
-            Notes
-          </button>
-          <button 
-            @click="activeTab = 'resources'" 
-            :class="{ active: activeTab === 'resources' }"
-          >
-            Study Materials
-          </button>
-          <button 
-            @click="activeTab = 'ai'" 
-            :class="{ active: activeTab === 'ai' }"
-          >
-            AI Assistant
-          </button>
+    <div class="content-section" v-if="notes.trim()">
+      <div class="notes-section">
+        <div class="notes-header">
+          <h2>Your Notes</h2>
+          <button @click="clearNotes" class="clear-btn">Clear</button>
         </div>
         
-        <div class="workspace-content">
-          <div v-if="activeTab === 'notes'" class="notes-tab">
-            <textarea 
-              v-model="notes" 
-              placeholder="Take your notes here. Try to use bullet points and clear headings to organize your thoughts."
-              rows="10"
-            ></textarea>
-            <div class="note-tips">
-              <h4>Note-Taking Tips for ADHD</h4>
-              <ul>
-                <li>Use color coding for different topics</li>
-                <li>Keep sentences short and to the point</li>
-                <li>Use bullet points instead of paragraphs</li>
-                <li>Create mind maps to visualize concepts</li>
-                <li>Take short breaks to stay focused</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div v-if="activeTab === 'resources'" class="resources-tab">
-            <h3>Recommended Learning Resources</h3>
-            <div class="resource-list">
-              <div class="resource-card">
-                <h4>Active Reading Strategies</h4>
-                <p>Learn techniques to stay engaged with text materials</p>
-                <button>View Resource</button>
-              </div>
-              <div class="resource-card">
-                <h4>Visual Learning Tools</h4>
-                <p>Mind mapping and visual organization techniques</p>
-                <button>View Resource</button>
-              </div>
-              <div class="resource-card">
-                <h4>Focus Training Exercises</h4>
-                <p>Activities to improve attention span and concentration</p>
-                <button>View Resource</button>
-              </div>
-            </div>
-          </div>
-          
-          <div v-if="activeTab === 'ai'" class="ai-tab">
-            <div class="ai-prompt">
-              <h3>AI Learning Assistant</h3>
-              <p>Ask for help with your learning material or get suggestions for focus strategies</p>
-              
-              <textarea 
-                v-model="aiPrompt" 
-                placeholder="Explain this topic, help me organize my notes, suggest focus strategies..."
-                rows="4"
-              ></textarea>
-              
-              <div class="ai-options">
-                <button 
-                  @click="getAIResponse" 
-                  :disabled="!aiPrompt.trim() || isLoadingAI"
-                >
-                  Get Help
-                </button>
-                <div class="ai-preferences">
-                  <label>
-                    <input type="checkbox" v-model="aiPreferences.structured_format">
-                    Structure response in clear steps
-                  </label>
-                  <label>
-                    <input type="checkbox" v-model="aiPreferences.visual_aids">
-                    Include visual descriptions
-                  </label>
-                </div>
-              </div>
-            </div>
-            
-            <div v-if="isLoadingAI" class="ai-loading">
-              <div class="loading-spinner"></div>
-              <p>Thinking...</p>
-            </div>
-            
-            <div v-if="aiResponse" class="ai-response">
-              <h3>Response</h3>
-              <div class="response-content" v-html="aiResponse"></div>
-            </div>
-          </div>
+        <textarea 
+          v-model="notes" 
+          placeholder="Your saved notes will appear here."
+          rows="8"
+        ></textarea>
+        
+        <div class="note-tips">
+          <h4>Note-Taking Tips for ADHD</h4>
+          <ul>
+            <li>Use color coding for different topics</li>
+            <li>Keep sentences short and to the point</li>
+            <li>Use bullet points instead of paragraphs</li>
+            <li>Create mind maps to visualize concepts</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -200,8 +172,7 @@ export default {
       newTask: '',
       tasks: [],
       
-      // Workspace variables
-      activeTab: 'notes',
+      // Notes
       notes: '',
       
       // AI assistant
@@ -211,6 +182,11 @@ export default {
       aiPreferences: {
         structured_format: true,
         visual_aids: false
+      },
+      templates: {
+        explain: "Could you explain this topic in an ADHD-friendly way: ",
+        organize: "Help me organize this information into a structured format: ",
+        focus: "Can you suggest focus strategies for working on: "
       }
     }
   },
@@ -278,6 +254,13 @@ export default {
     removeTask(index) {
       this.tasks.splice(index, 1);
     },
+    applyTemplate(templateName) {
+      if (this.templates[templateName]) {
+        // If there's already text, add a space first
+        const prefix = this.aiPrompt.trim() ? this.aiPrompt + "\n\n" : "";
+        this.aiPrompt = prefix + this.templates[templateName];
+      }
+    },
     async getAIResponse() {
       if (!this.aiPrompt.trim() || this.isLoadingAI) return;
       
@@ -295,12 +278,40 @@ export default {
           }
         });
         
-        this.aiResponse = response.data.response;
+        // Clean up the response by removing code block markers
+        let cleanedResponse = response.data.response;
+        cleanedResponse = cleanedResponse.replace(/```html/g, '');
+        cleanedResponse = cleanedResponse.replace(/```/g, '');
+        
+        this.aiResponse = cleanedResponse;
       } catch (error) {
         console.error('Error getting AI response:', error);
         this.aiResponse = '<p>Sorry, there was an error getting a response. Please try again.</p>';
       } finally {
         this.isLoadingAI = false;
+      }
+    },
+    saveToNotes() {
+      if (!this.aiResponse) return;
+      
+      // Extract text content from HTML response
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = this.aiResponse;
+      const textContent = tempDiv.textContent || tempDiv.innerText || '';
+      
+      // Add timestamp
+      const now = new Date();
+      const timestamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+      
+      // Format the notes to be added
+      const notesToAdd = `--- AI RESPONSE (${timestamp}) ---\n\n${textContent}\n\n`;
+      
+      // Add to existing notes
+      this.notes = this.notes.trim() ? this.notes + '\n\n' + notesToAdd : notesToAdd;
+    },
+    clearNotes() {
+      if (confirm("Are you sure you want to clear all your notes?")) {
+        this.notes = '';
       }
     }
   },
@@ -345,6 +356,12 @@ export default {
 </script>
 
 <style scoped>
+
+input, textarea, select {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
 .adhd-container {
   max-width: 100%;
 }
@@ -371,58 +388,66 @@ export default {
   margin-bottom: 30px;
 }
 
-.focus-tools {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* Two-column layout for tools */
+.learning-tools {
+  display: flex;
+  flex-wrap: wrap;
   gap: 30px;
 }
 
-@media (max-width: 768px) {
-  .focus-tools {
-    grid-template-columns: 1fr;
-  }
+.focus-panel {
+  flex: 1;
+  min-width: 250px;
+  max-width: 350px;
 }
 
+.ai-assistant {
+  flex: 2;
+  min-width: 400px;
+}
+
+/* Pomodoro Timer */
 .pomodoro-timer {
   padding: 20px;
   background-color: #f8f9fa;
   border-radius: 10px;
   text-align: center;
-}
-
-.pomodoro-timer h2 {
-  color: #6A11CB;
   margin-bottom: 20px;
 }
 
+.pomodoro-timer h3 {
+  color: #6A11CB;
+  margin-bottom: 15px;
+}
+
 .timer-display {
-  margin: 30px 0;
+  margin: 20px 0;
 }
 
 .time {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: #333;
 }
 
 .timer-label {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #666;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .timer-controls {
-  margin: 20px 0;
+  margin: 15px 0;
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .timer-controls button {
   background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
   color: white;
   border: none;
-  padding: 10px 25px;
+  padding: 8px 20px;
   border-radius: 25px;
   cursor: pointer;
   font-weight: 500;
@@ -434,47 +459,35 @@ export default {
 }
 
 .timer-settings {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
 .setting {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  margin-bottom: 10px;
 }
 
 .setting label {
+  display: block;
   margin-bottom: 5px;
   font-size: 0.9rem;
   color: #666;
 }
 
 .setting input {
-  width: 60px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  text-align: center;
+  width: 100%;
+  max-width: 200px;
 }
 
+/* Task Manager */
 .task-manager {
   padding: 20px;
   background-color: #f8f9fa;
   border-radius: 10px;
 }
 
-.task-manager h2 {
+.task-manager h3 {
   color: #6A11CB;
-  margin-bottom: 5px;
-}
-
-.task-manager p {
-  color: #666;
-  margin-bottom: 20px;
-  font-size: 0.95rem;
+  margin-bottom: 15px;
 }
 
 .task-input {
@@ -491,24 +504,25 @@ export default {
 }
 
 .task-input button {
+  width: 40px;
   background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
   color: white;
   border: none;
-  padding: 10px 15px;
   border-radius: 0 6px 6px 0;
   cursor: pointer;
   font-weight: 500;
+  font-size: 18px;
 }
 
 .task-list {
-  max-height: 300px;
+  max-height: 250px;
   overflow-y: auto;
 }
 
 .task-item {
   display: flex;
   align-items: center;
-  padding: 12px;
+  padding: 10px;
   background: #fff;
   border-radius: 6px;
   margin-bottom: 8px;
@@ -527,9 +541,8 @@ export default {
 .checkbox-container {
   display: block;
   position: relative;
-  padding-left: 35px;
+  padding-left: 30px;
   cursor: pointer;
-  font-size: 16px;
   user-select: none;
 }
 
@@ -545,8 +558,8 @@ export default {
   position: absolute;
   top: 0;
   left: 0;
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
   background-color: #eee;
   border-radius: 3px;
 }
@@ -570,8 +583,8 @@ export default {
 }
 
 .checkbox-container .checkmark:after {
-  left: 7px;
-  top: 3px;
+  left: 6px;
+  top: 2px;
   width: 5px;
   height: 10px;
   border: solid white;
@@ -581,7 +594,8 @@ export default {
 
 .task-text {
   flex: 1;
-  margin-left: 15px;
+  margin-left: 10px;
+  font-size: 0.95rem;
 }
 
 .delete-btn {
@@ -600,175 +614,86 @@ export default {
 .empty-tasks {
   color: #888;
   text-align: center;
-  padding: 20px 0;
+  padding: 15px 0;
   font-style: italic;
-}
-
-.study-workspace {
-  padding: 10px;
-}
-
-.study-workspace h2 {
-  color: #6A11CB;
-  margin-bottom: 20px;
-}
-
-.workspace-tabs {
-  display: flex;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.workspace-tabs button {
-  background: none;
-  border: none;
-  padding: 12px 25px;
-  font-size: 16px;
-  cursor: pointer;
-  opacity: 0.7;
-  position: relative;
-}
-
-.workspace-tabs button:after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: transparent;
-}
-
-.workspace-tabs button.active {
-  opacity: 1;
-  font-weight: 600;
-}
-
-.workspace-tabs button.active:after {
-  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
-}
-
-.workspace-content {
-  min-height: 400px;
-}
-
-.notes-tab {
-  display: flex;
-  gap: 30px;
-}
-
-.notes-tab textarea {
-  flex: 2;
-  min-height: 300px;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  resize: vertical;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.note-tips {
-  flex: 1;
-  background: #f9f8ff;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.note-tips h4 {
-  color: #6A11CB;
-  margin-bottom: 15px;
-}
-
-.note-tips ul {
-  padding-left: 20px;
-}
-
-.note-tips li {
-  margin-bottom: 10px;
-  color: #555;
-}
-
-.resources-tab h3 {
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.resource-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-.resource-card {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  transition: transform 0.2s;
-}
-
-.resource-card:hover {
-  transform: translateY(-5px);
-}
-
-.resource-card h4 {
-  color: #6A11CB;
-  margin-bottom: 8px;
-}
-
-.resource-card p {
-  color: #666;
   font-size: 0.9rem;
-  margin-bottom: 15px;
 }
 
-.resource-card button {
-  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.ai-tab {
-  padding: 10px;
-}
-
-.ai-prompt {
-  margin-bottom: 30px;
-}
-
-.ai-prompt h3 {
+/* AI Assistant - Main Focus Area */
+.ai-assistant h2 {
+  color: #6A11CB;
   margin-bottom: 5px;
-  color: #333;
 }
 
-.ai-prompt p {
+.ai-assistant > p {
   color: #666;
-  margin-bottom: 15px;
-  font-size: 0.95rem;
+  margin-bottom: 20px;
+  font-size: 1rem;
 }
 
-.ai-prompt textarea {
+.ai-input {
+  margin-bottom: 20px;
+}
+
+.ai-input textarea {
   width: 100%;
   padding: 15px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
   font-size: 16px;
   resize: vertical;
-  margin-bottom: 15px;
+  min-height: 120px;
+  border-bottom: none;
 }
 
 .ai-options {
+  background: #f8f9fa;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 0 0 8px 8px;
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.ai-options button {
+.help-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.template-btn {
+  background: #e9ecef;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.template-btn:hover {
+  background: #dee2e6;
+}
+
+.preferences {
+  display: flex;
+  gap: 15px;
+}
+
+.preferences label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.preferences input {
+  margin-right: 6px;
+}
+
+.submit-btn {
+  align-self: flex-end;
   background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
   color: white;
   border: none;
@@ -778,31 +703,16 @@ export default {
   font-weight: 500;
 }
 
-.ai-options button:disabled {
+.submit-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
 }
 
-.ai-preferences {
-  display: flex;
-  gap: 20px;
-}
-
-.ai-preferences label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.ai-preferences input {
-  margin-right: 8px;
-}
-
-.ai-loading {
+.loading {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 30px;
+  padding: 25px;
 }
 
 .loading-spinner {
@@ -835,12 +745,104 @@ export default {
   line-height: 1.7;
 }
 
+.notes-integration {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-notes-btn {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.save-notes-btn:hover {
+  background: #e0e0e0;
+}
+
+/* Notes Section */
+.notes-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.notes-header h2 {
+  color: #6A11CB;
+  margin: 0;
+}
+
+.clear-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 5px 12px;
+  color: #666;
+  cursor: pointer;
+}
+
+.clear-btn:hover {
+  background: #f0f0f0;
+}
+
+.notes-section textarea {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: vertical;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.note-tips {
+  background: #f9f8ff;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.note-tips h4 {
+  color: #6A11CB;
+  margin-bottom: 15px;
+}
+
+.note-tips ul {
+  padding-left: 20px;
+}
+
+.note-tips li {
+  margin-bottom: 10px;
+  color: #555;
+}
+
 @media (max-width: 768px) {
-  .notes-tab {
+  .learning-tools {
     flex-direction: column;
   }
   
-  .ai-options {
+  .focus-panel {
+    max-width: 100%;
+  }
+  
+  .ai-assistant {
+    min-width: unset;
+  }
+  
+  .help-options, .preferences {
     flex-direction: column;
     align-items: flex-start;
   }

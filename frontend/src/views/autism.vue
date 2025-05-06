@@ -5,95 +5,120 @@
       <p>Structured learning with predictable patterns and sensory considerations</p>
     </div>
     
+    <!-- Main AI Learning Assistant Section -->
     <div class="content-section">
-      <div class="environment-controls">
-        <h2>Learning Environment Settings</h2>
-        <p>Customize your learning environment to minimize distractions and sensory overload</p>
+      <div class="ai-learning-assistant">
+        <h2>AI Learning Assistant</h2>
+        <p>Get personalized explanations on any topic with autism-friendly formatting</p>
         
-        <div class="control-options">
-          <div class="control-group">
-            <label>Visual Theme</label>
-            <div class="theme-options">
-              <button 
-                v-for="theme in visualThemes" 
-                :key="theme.name"
-                :class="['theme-btn', { active: settings.theme === theme.name }]"
-                :style="{ backgroundColor: theme.backgroundColor, color: theme.textColor }"
-                @click="changeTheme(theme.name)"
-              >
-                {{ theme.name }}
-              </button>
+        <div class="ai-input-section">
+          <textarea 
+            v-model="aiPrompt" 
+            placeholder="What topic would you like to learn about? Ask a question or request information on any subject..."
+            rows="4"
+          ></textarea>
+          
+          <div class="ai-preferences">
+            <div class="preferences-toggle" @click="showPreferences = !showPreferences">
+              <span>Learning Preferences</span>
+              <span class="toggle-icon">{{ showPreferences ? '▼' : '▶' }}</span>
+            </div>
+            
+            <div v-if="showPreferences" class="preferences-panel">
+              <div class="preference-item">
+                <label>Text Presentation</label>
+                <div class="option-buttons">
+                  <button 
+                    :class="{ active: settings.textChunking === 'normal' }"
+                    @click="settings.textChunking = 'normal'"
+                  >
+                    Normal
+                  </button>
+                  <button 
+                    :class="{ active: settings.textChunking === 'chunked' }"
+                    @click="settings.textChunking = 'chunked'"
+                  >
+                    Chunked
+                  </button>
+                  <button 
+                    :class="{ active: settings.textChunking === 'highlighted' }"
+                    @click="settings.textChunking = 'highlighted'"
+                  >
+                    Highlighted
+                  </button>
+                </div>
+              </div>
+              
+              <div class="preference-item">
+                <label>Visual Theme</label>
+                <div class="theme-options">
+                  <button 
+                    v-for="theme in visualThemes" 
+                    :key="theme.name"
+                    :class="['theme-btn', { active: settings.theme === theme.name }]"
+                    :style="{ backgroundColor: theme.backgroundColor, color: theme.textColor }"
+                    @click="changeTheme(theme.name)"
+                  >
+                    {{ theme.name }}
+                  </button>
+                </div>
+              </div>
+              
+              <div class="preference-item">
+                <label>Learning Elements</label>
+                <div class="checkbox-options">
+                  <label class="checkbox-label">
+                    <input type="checkbox" v-model="settings.showVisuals">
+                    Include visual supports
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" v-model="settings.showAgenda">
+                    Show agenda/structure
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" v-model="settings.showTransitions">
+                    Show clear transitions
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
           
-          <div class="control-group">
-            <label>Animation Level</label>
-            <div class="slider-container">
-              <input type="range" min="0" max="2" v-model="settings.animationLevel">
-              <span>{{ animationLevelText }}</span>
-            </div>
-          </div>
-          
-          <div class="control-group">
-            <label>Text Presentation</label>
-            <div class="option-buttons">
-              <button 
-                :class="{ active: settings.textChunking === 'normal' }"
-                @click="settings.textChunking = 'normal'"
-              >
-                Normal
-              </button>
-              <button 
-                :class="{ active: settings.textChunking === 'chunked' }"
-                @click="settings.textChunking = 'chunked'"
-              >
-                Chunked
-              </button>
-              <button 
-                :class="{ active: settings.textChunking === 'highlighted' }"
-                @click="settings.textChunking = 'highlighted'"
-              >
-                Highlighted
-              </button>
-            </div>
-          </div>
-          
-          <div class="control-group">
-            <label>Learning Elements</label>
-            <div class="checkbox-options">
-              <label class="checkbox-label">
-                <input type="checkbox" v-model="settings.showVisuals">
-                Include visual supports
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" v-model="settings.showAgenda">
-                Show agenda/schedule
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" v-model="settings.showTransitions">
-                Announce transitions
-              </label>
-            </div>
-          </div>
+          <button 
+            @click="getAIExplanation" 
+            :disabled="!aiPrompt.trim() || isLoadingAI"
+            class="submit-btn"
+          >
+            Generate Learning Content
+          </button>
+        </div>
+        
+        <div v-if="isLoadingAI" class="loading">
+          <div class="loading-spinner"></div>
+          <p>Creating your personalized learning content...</p>
         </div>
       </div>
     </div>
     
-    <div class="content-section">
+    <!-- AI Generated Learning Content Section -->
+    <div v-if="aiResponse" class="content-section">
       <div class="learning-module" :class="settings.theme">
-        <transition name="fade" v-if="settings.showAgenda">
+        <transition name="fade" v-if="settings.showAgenda && processedResponse && processedResponse.sections">
           <div class="agenda-panel" v-show="settings.showAgenda">
-            <h3>Learning Session Agenda</h3>
+            <h3>Content Structure</h3>
             <ol class="agenda-list">
-              <li :class="{ active: currentStep === 1 }">Introduction to the topic</li>
-              <li :class="{ active: currentStep === 2 }">Key concepts and definitions</li>
-              <li :class="{ active: currentStep === 3 }">Visual examples and demonstrations</li>
-              <li :class="{ active: currentStep === 4 }">Practice activities</li>
-              <li :class="{ active: currentStep === 5 }">Review and summarize</li>
+              <li 
+                v-for="(section, index) in processedResponse.sections" 
+                :key="index"
+                :class="{ active: currentStep === index + 1 }"
+                @click="currentStep = index + 1"
+              >
+                {{ section.title || `Section ${index + 1}` }}
+              </li>
             </ol>
             
-            <div class="progress-bar">
-              <div class="progress" :style="{ width: `${(currentStep / 5) * 100}%` }"></div>
+            <div class="progress-bar" v-if="processedResponse && processedResponse.sections">
+              <div class="progress" :style="{ width: `${(currentStep / processedResponse.sections.length) * 100}%` }"></div>
             </div>
           </div>
         </transition>
@@ -103,190 +128,40 @@
             {{ transitionMessage }}
           </div>
           
-          <div class="step-navigator">
+          <div class="step-navigator" v-if="processedResponse && processedResponse.sections && processedResponse.sections.length > 1">
             <button @click="previousStep" :disabled="currentStep === 1">Previous</button>
-            <span class="step-indicator">Step {{ currentStep }} of 5</span>
-            <button @click="nextStep" :disabled="currentStep === 5">Next</button>
+            <span class="step-indicator">Step {{ currentStep }} of {{ processedResponse.sections.length }}</span>
+            <button @click="nextStep" :disabled="currentStep === processedResponse.sections.length">Next</button>
           </div>
           
-          <div class="current-step-content">
-            <div v-if="currentStep === 1">
-              <h2>Introduction to Planets of the Solar System</h2>
+          <div v-if="processedResponse" class="current-step-content">
+            <div v-if="currentSection">
+              <h2>{{ currentSection.title || 'Learning Content' }}</h2>
               
               <div class="content-block" :class="{ 'text-chunked': settings.textChunking === 'chunked' }">
-                <p v-if="settings.textChunking !== 'highlighted'">
-                  Our solar system consists of the Sun, eight planets, dwarf planets, moons, asteroids, and comets. 
-                  Each planet is unique and has different characteristics. Today, we will learn about the planets 
-                  in our solar system and what makes each one special.
-                </p>
-                <p v-else v-html="highlightedIntroText"></p>
+                <div v-if="settings.textChunking !== 'highlighted'" v-html="currentSection.content"></div>
+                <div v-else v-html="highlightContent(currentSection.content)"></div>
               </div>
               
-              <div v-if="settings.showVisuals" class="visual-support">
+              <div v-if="settings.showVisuals && currentSection.visualDesc" class="visual-support">
                 <div class="image-placeholder">
-                  <span>[Solar system diagram showing all planets orbiting the sun]</span>
+                  <span>[{{ currentSection.visualDesc }}]</span>
+                </div>
+              </div>
+              
+              <div v-if="currentSection.definitions && currentSection.definitions.length > 0" class="definitions-section">
+                <h3>Key Terms</h3>
+                <div v-for="(def, index) in currentSection.definitions" :key="index" class="definition-box">
+                  <strong>{{ def.term }}:</strong> {{ def.definition }}
                 </div>
               </div>
             </div>
             
-            <div v-if="currentStep === 2">
-              <h2>Key Concepts: The Planets</h2>
-              
-              <div class="content-block" :class="{ 'text-chunked': settings.textChunking === 'chunked' }">
-                <p v-if="settings.textChunking !== 'highlighted'">
-                  There are eight planets in our solar system. They are: Mercury, Venus, Earth, Mars, Jupiter, Saturn, 
-                  Uranus, and Neptune. The planets are divided into two categories: inner rocky planets (Mercury, 
-                  Venus, Earth, Mars) and outer gas giants (Jupiter, Saturn, Uranus, Neptune).
-                </p>
-                <p v-else v-html="highlightedConceptsText"></p>
-                
-                <div class="definition-box">
-                  <strong>Planet:</strong> A celestial body that orbits the Sun, has sufficient mass for gravity to make it round, 
-                  and has cleared its orbit of other objects.
-                </div>
-              </div>
-              
-              <div v-if="settings.showVisuals" class="visual-support">
-                <div class="image-placeholder">
-                  <span>[Diagram showing comparison of planet sizes]</span>
-                </div>
-              </div>
-            </div>
-            
-            <div v-if="currentStep === 3">
-              <h2>Visual Examples: Planet Features</h2>
-              
-              <div class="planet-features">
-                <div class="planet-card">
-                  <div class="planet-image earth"></div>
-                  <h3>Earth</h3>
-                  <ul>
-                    <li>Has liquid water oceans</li>
-                    <li>Has breathable atmosphere</li>
-                    <li>One natural satellite (Moon)</li>
-                    <li>Has life</li>
-                  </ul>
-                </div>
-                
-                <div class="planet-card">
-                  <div class="planet-image mars"></div>
-                  <h3>Mars</h3>
-                  <ul>
-                    <li>Red color from iron oxide</li>
-                    <li>Has thin atmosphere</li>
-                    <li>Two small moons</li>
-                    <li>Has polar ice caps</li>
-                  </ul>
-                </div>
-                
-                <div class="planet-card">
-                  <div class="planet-image jupiter"></div>
-                  <h3>Jupiter</h3>
-                  <ul>
-                    <li>Largest planet</li>
-                    <li>Great Red Spot storm</li>
-                    <li>79 known moons</li>
-                    <li>Composed of gas</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            <div v-if="currentStep === 4">
-              <h2>Practice Activity: Planet Identification</h2>
-              
-              <div class="practice-activity">
-                <div class="instruction-block">
-                  <p>Match each characteristic with the correct planet.</p>
-                </div>
-                
-                <div class="quiz-container">
-                  <div 
-                    v-for="(question, index) in quizQuestions" 
-                    :key="index"
-                    class="quiz-question"
-                  >
-                    <div class="question-text">{{ question.text }}</div>
-                    <div class="answer-options">
-                      <button 
-                        v-for="option in question.options" 
-                        :key="option"
-                        :class="{ 
-                          selected: question.selected === option,
-                          correct: question.showAnswer && question.answer === option,
-                          incorrect: question.showAnswer && question.selected === option && question.selected !== question.answer
-                        }"
-                        @click="selectAnswer(index, option)"
-                        :disabled="question.showAnswer"
-                      >
-                        {{ option }}
-                      </button>
-                    </div>
-                    <div v-if="question.showAnswer" class="answer-feedback">
-                      {{ question.selected === question.answer ? 'Correct!' : `The correct answer is ${question.answer}` }}
-                    </div>
-                  </div>
-                  
-                  <button class="check-answers-btn" @click="checkAnswers" v-if="!quizChecked">
-                    Check Answers
-                  </button>
-                  <div v-else class="quiz-results">
-                    You got {{ correctAnswers }} out of {{ quizQuestions.length }} correct!
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div v-if="currentStep === 5">
-              <h2>Review and Summary</h2>
-              
-              <div class="content-block" :class="{ 'text-chunked': settings.textChunking === 'chunked' }">
-                <p v-if="settings.textChunking !== 'highlighted'">
-                  Today we learned about the planets in our solar system. We discussed the inner rocky planets 
-                  (Mercury, Venus, Earth, Mars) and the outer gas giants (Jupiter, Saturn, Uranus, Neptune). 
-                  Each planet has unique features that make it different from the others.
-                </p>
-                <p v-else v-html="highlightedSummaryText"></p>
-              </div>
-              
-              <div class="key-takeaways">
-                <h3>Key Takeaways</h3>
-                <ul>
-                  <li>The solar system has eight official planets</li>
-                  <li>Planets are divided into rocky planets and gas giants</li>
-                  <li>Earth is the only known planet with life</li>
-                  <li>Jupiter is the largest planet</li>
-                  <li>Each planet has unique features and characteristics</li>
-                </ul>
-              </div>
-              
-              <div class="ai-help-section">
-                <h3>Need Additional Help?</h3>
-                <p>Ask our AI Assistant to explain any concept in a different way:</p>
-                
-                <div class="ai-input">
-                  <textarea 
-                    v-model="aiPrompt" 
-                    placeholder="Ask a question about the solar system or planets..."
-                    rows="2"
-                  ></textarea>
-                  <button 
-                    @click="getAIExplanation" 
-                    :disabled="!aiPrompt.trim() || isLoadingAI"
-                  >
-                    Get Explanation
-                  </button>
-                </div>
-                
-                <div v-if="isLoadingAI" class="ai-loading">
-                  <div class="loading-spinner"></div>
-                  Processing...
-                </div>
-                
-                <div v-if="aiResponse" class="ai-response" :class="settings.theme">
-                  <div v-html="aiResponse"></div>
-                </div>
-              </div>
+            <div v-if="currentStep === processedResponse.sections.length && processedResponse.summary" class="key-takeaways">
+              <h3>Key Takeaways</h3>
+              <ul>
+                <li v-for="(point, index) in processedResponse.summary" :key="index">{{ point }}</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -305,12 +180,12 @@ export default {
       // Environment settings
       settings: {
         theme: 'neutral',
-        animationLevel: 1,
         textChunking: 'normal',
         showVisuals: true,
         showAgenda: true,
         showTransitions: true
       },
+      showPreferences: false,
       
       visualThemes: [
         { name: 'neutral', backgroundColor: '#ffffff', textColor: '#333333' },
@@ -319,58 +194,21 @@ export default {
         { name: 'dark-mode', backgroundColor: '#222222', textColor: '#e0e0e0' }
       ],
       
+      // AI content
+      aiPrompt: '',
+      aiResponse: null,
+      processedResponse: null,
+      isLoadingAI: false,
+      
       // Learning module state
       currentStep: 1,
       transitionMessage: null,
-      
-      // Quiz state
-      quizQuestions: [
-        {
-          text: "Which planet is known as the 'Red Planet'?",
-          options: ['Earth', 'Mars', 'Venus', 'Jupiter'],
-          answer: 'Mars',
-          selected: null,
-          showAnswer: false
-        },
-        {
-          text: "Which is the largest planet in our solar system?",
-          options: ['Saturn', 'Earth', 'Jupiter', 'Neptune'],
-          answer: 'Jupiter',
-          selected: null,
-          showAnswer: false
-        },
-        {
-          text: "Which planet is known for its prominent rings?",
-          options: ['Jupiter', 'Saturn', 'Uranus', 'Neptune'],
-          answer: 'Saturn',
-          selected: null,
-          showAnswer: false
-        }
-      ],
-      quizChecked: false,
-      
-      // AI assistance
-      aiPrompt: '',
-      aiResponse: null,
-      isLoadingAI: false
     }
   },
   computed: {
-    animationLevelText() {
-      const levels = ['None', 'Minimal', 'Standard'];
-      return levels[this.settings.animationLevel];
-    },
-    correctAnswers() {
-      return this.quizQuestions.filter(q => q.selected === q.answer).length;
-    },
-    highlightedIntroText() {
-      return 'Our solar system consists of <span class="highlight">the Sun</span>, <span class="highlight">eight planets</span>, dwarf planets, moons, asteroids, and comets. Each planet is <span class="highlight">unique</span> and has different characteristics. Today, we will learn about the planets in our solar system and what makes each one special.';
-    },
-    highlightedConceptsText() {
-      return 'There are <span class="highlight">eight planets</span> in our solar system. They are: <span class="highlight">Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune</span>. The planets are divided into two categories: <span class="highlight">inner rocky planets</span> (Mercury, Venus, Earth, Mars) and <span class="highlight">outer gas giants</span> (Jupiter, Saturn, Uranus, Neptune).';
-    },
-    highlightedSummaryText() {
-      return 'Today we learned about the <span class="highlight">planets in our solar system</span>. We discussed the <span class="highlight">inner rocky planets</span> (Mercury, Venus, Earth, Mars) and the <span class="highlight">outer gas giants</span> (Jupiter, Saturn, Uranus, Neptune). Each planet has <span class="highlight">unique features</span> that make it different from the others.';
+    currentSection() {
+      if (!this.processedResponse || !this.processedResponse.sections) return null;
+      return this.processedResponse.sections[this.currentStep - 1];
     }
   },
   methods: {
@@ -382,27 +220,18 @@ export default {
     
     previousStep() {
       if (this.currentStep > 1) {
-        this.showTransition(`Moving to previous step: ${this.getStepName(this.currentStep - 1)}`);
+        const prevSection = this.processedResponse.sections[this.currentStep - 2];
+        this.showTransition(`Moving to: ${prevSection.title || 'Previous section'}`);
         this.currentStep -= 1;
       }
     },
     
     nextStep() {
-      if (this.currentStep < 5) {
-        this.showTransition(`Moving to next step: ${this.getStepName(this.currentStep + 1)}`);
+      if (this.processedResponse && this.currentStep < this.processedResponse.sections.length) {
+        const nextSection = this.processedResponse.sections[this.currentStep];
+        this.showTransition(`Moving to: ${nextSection.title || 'Next section'}`);
         this.currentStep += 1;
       }
-    },
-    
-    getStepName(stepNumber) {
-      const steps = [
-        'Introduction',
-        'Key Concepts',
-        'Visual Examples',
-        'Practice Activity',
-        'Review and Summary'
-      ];
-      return steps[stepNumber - 1];
     },
     
     showTransition(message) {
@@ -414,40 +243,239 @@ export default {
       }, 2000);
     },
     
-    selectAnswer(questionIndex, option) {
-      this.quizQuestions[questionIndex].selected = option;
-    },
-    
-    checkAnswers() {
-      // Show answers for all questions
-      this.quizQuestions.forEach(question => {
-        question.showAnswer = true;
+    highlightContent(content) {
+      // Find important concepts and add highlight spans
+      // This is a simple implementation - AI could help identify key concepts
+      
+      // Extract key terms from definitions if available
+      let keyTerms = [];
+      if (this.currentSection && this.currentSection.definitions) {
+        keyTerms = this.currentSection.definitions.map(def => def.term);
+      }
+      
+      // If no definitions, use some basic heuristics to find keywords
+      if (keyTerms.length === 0) {
+        const commonWords = ['the', 'and', 'a', 'an', 'in', 'on', 'with', 'of', 'to', 'is', 'are'];
+        const words = content.match(/\b\w+\b/g) || [];
+        const wordFrequency = {};
+        
+        words.forEach(word => {
+          const lowerWord = word.toLowerCase();
+          if (!commonWords.includes(lowerWord) && lowerWord.length > 3) {
+            wordFrequency[lowerWord] = (wordFrequency[lowerWord] || 0) + 1;
+          }
+        });
+        
+        keyTerms = Object.entries(wordFrequency)
+          .filter(([, count]) => count > 1) // Fixed unused '_' variable
+          .map(([word]) => word)
+          .slice(0, 5);
+      }
+      
+      // Apply highlights
+      let highlightedContent = content;
+      keyTerms.forEach(term => {
+        // Use regex to replace with highlight spans, case insensitive
+        const regex = new RegExp(`\\b${term}\\b`, 'gi');
+        highlightedContent = highlightedContent.replace(regex, match => `<span class="highlight">${match}</span>`);
       });
-      this.quizChecked = true;
+      
+      return highlightedContent;
     },
     
     async getAIExplanation() {
       if (!this.aiPrompt.trim() || this.isLoadingAI) return;
       
       this.isLoadingAI = true;
+      this.aiResponse = null;
+      this.processedResponse = null;
+      this.currentStep = 1;
       
       try {
+        const prompt = `
+        Create a structured, autism-friendly learning module about: ${this.aiPrompt}
+        
+        Format your response as a structured learning guide with:
+        
+        1. A brief introduction to the topic
+        2. 2-4 discrete sections explaining important parts of the topic
+        3. A visual description for each section that could be illustrated
+        4. Important definitions or concepts in each section
+        5. A summary with 3-5 key points at the end
+        
+        Use precise language, avoid metaphors, use concrete examples, and maintain a clear structure.
+        Include definitions for any potentially unfamiliar terms.
+        `;
+        
         const response = await axios.post('/api/assistant', {
-          prompt: `${this.aiPrompt} (Please explain in a way that's helpful for someone with autism - clear, precise language, avoid idioms, and include visual descriptions)`,
+          prompt: prompt,
           learning_preferences: {
-            visual_aids: true,
+            visual_aids: this.settings.showVisuals,
             structured_format: true,
             simplified_language: false // Autism often benefits from precise rather than simplified language
           }
         });
         
         this.aiResponse = response.data.response;
+        
+        // Process and structure the AI response
+        this.processAIResponse(this.aiResponse);
+        
       } catch (error) {
         console.error('Error getting AI explanation:', error);
         this.aiResponse = '<p>Sorry, there was an error getting a response. Please try again.</p>';
       } finally {
         this.isLoadingAI = false;
       }
+    },
+    
+    processAIResponse(response) {
+      // Clean up code blocks and other markdown artifacts
+      let cleanedResponse = response.replace(/```html/g, '').replace(/```/g, '');
+      
+      // Create a structured object from the AI response
+      // This is a simplistic parser - a more robust solution would be needed for production
+      try {
+        const sections = [];
+        // Removed the unused 'currentSection' variable
+        
+        // Split by headers
+        const headerMatches = cleanedResponse.match(/<h[1-3][^>]*>.*?<\/h[1-3]>/g) || [];
+        let contentParts = cleanedResponse.split(/<h[1-3][^>]*>.*?<\/h[1-3]>/);
+        
+        // Process introduction (before first header, if exists)
+        if (contentParts[0].trim()) {
+          sections.push({
+            title: 'Introduction',
+            content: contentParts[0].trim(),
+            definitions: this.extractDefinitions(contentParts[0]),
+            visualDesc: this.extractVisualDescription(contentParts[0])
+          });
+        }
+        
+        // Process each section
+        for (let i = 0; i < headerMatches.length; i++) {
+          const headerText = headerMatches[i].replace(/<\/?h[1-3][^>]*>/g, '').trim();
+          const content = contentParts[i + 1] || '';
+          
+          // Skip summary section - we'll handle it separately
+          if (headerText.toLowerCase().includes('summary') || 
+              headerText.toLowerCase().includes('takeaway') ||
+              headerText.toLowerCase().includes('key point')) {
+            continue;
+          }
+          
+          sections.push({
+            title: headerText,
+            content: content.trim(),
+            definitions: this.extractDefinitions(content),
+            visualDesc: this.extractVisualDescription(content)
+          });
+        }
+        
+        // Extract summary points
+        const summaryPoints = this.extractSummaryPoints(cleanedResponse);
+        
+        this.processedResponse = {
+          sections: sections,
+          summary: summaryPoints
+        };
+        
+        console.log('Processed response:', this.processedResponse);
+        
+      } catch (error) {
+        console.error('Error processing AI response:', error);
+        // Fallback to a simple structure
+        this.processedResponse = {
+          sections: [{
+            title: 'Learning Content',
+            content: cleanedResponse,
+            definitions: [],
+            visualDesc: null
+          }],
+          summary: []
+        };
+      }
+    },
+    
+    extractDefinitions(content) {
+      const definitions = [];
+      
+      // Look for definition patterns like "Term: definition" or <strong>Term:</strong> definition
+      const definitionRegex = /<strong>([^:]+):<\/strong>\s*([^<]+)/g;
+      let match;
+      
+      while ((match = definitionRegex.exec(content)) !== null) {
+        definitions.push({
+          term: match[1].trim(),
+          definition: match[2].trim()
+        });
+      }
+      
+      // Also look for definition boxes
+      const defBoxRegex = /<div class="definition-box">\s*<strong>([^:]+):<\/strong>\s*([^<]+)/g;
+      while ((match = defBoxRegex.exec(content)) !== null) {
+        definitions.push({
+          term: match[1].trim(),
+          definition: match[2].trim()
+        });
+      }
+      
+      return definitions;
+    },
+    
+    extractVisualDescription(content) {
+      // Look for text in square brackets that might describe an image
+      const visualRegex = /\[(.*?)]/g; // Fixed unnecessary escape character
+      const matches = content.match(visualRegex);
+      
+      if (matches && matches.length > 0) {
+        // Fix: Remove square brackets without unnecessary escape characters
+        return matches[0].replace(/[[\]]/g, '');
+      }
+      
+      // Alternative: look for text in parentheses containing visual words
+      const visualWords = ['diagram', 'illustration', 'image', 'picture', 'visual'];
+      const parenRegex = /\((.*?)\)/g;
+      let match;
+      
+      while ((match = parenRegex.exec(content)) !== null) {
+        const text = match[1].toLowerCase();
+        if (visualWords.some(word => text.includes(word))) {
+          return match[1];
+        }
+      }
+      
+      return null;
+    },
+    
+    extractSummaryPoints(content) {
+      // Look for a summary section
+      const summaryRegex = /<h[1-3][^>]*>.*?(summary|key\s*points|takeaways).*?<\/h[1-3]>([\s\S]*?)(<h[1-3]|$)/i;
+      const match = summaryRegex.exec(content);
+      
+      if (match && match[2]) {
+        const summaryContent = match[2];
+        
+        // Extract points from bullet list
+        const listItemRegex = /<li>(.*?)<\/li>/g;
+        const points = [];
+        let itemMatch;
+        
+        while ((itemMatch = listItemRegex.exec(summaryContent)) !== null) {
+          points.push(itemMatch[1].trim());
+        }
+        
+        // If no list items found, try to extract sentences
+        if (points.length === 0) {
+          const sentences = summaryContent.split(/[.!?]+/).filter(s => s.trim().length > 10);
+          return sentences.map(s => s.trim()).slice(0, 5);
+        }
+        
+        return points;
+      }
+      
+      return [];
     }
   },
   mounted() {
@@ -461,6 +489,12 @@ export default {
 </script>
 
 <style scoped>
+
+input, textarea, select {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
 .autism-container {
   max-width: 100%;
 }
@@ -487,31 +521,75 @@ export default {
   margin-bottom: 30px;
 }
 
-.environment-controls h2 {
+/* AI Learning Assistant */
+.ai-learning-assistant h2 {
   color: #6A11CB;
   margin-bottom: 5px;
 }
 
-.environment-controls p {
+.ai-learning-assistant > p {
   color: #666;
   margin-bottom: 20px;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
-.control-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 25px;
+.ai-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.control-group {
-  margin-bottom: 20px;
+.ai-input-section textarea {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 100px;
 }
 
-.control-group label {
-  display: block;
+.ai-preferences {
+  background: #f9f9f9;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preferences-toggle {
+  padding: 12px 15px;
+  cursor: pointer;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+}
+
+.preferences-toggle:hover {
+  background: #e8e8e8;
+}
+
+.preferences-panel {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.preference-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.preference-item label {
   font-weight: 600;
-  margin-bottom: 10px;
 }
 
 .theme-options {
@@ -533,16 +611,6 @@ export default {
   border-color: #6A11CB;
   font-weight: 600;
   transform: scale(1.05);
-}
-
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.slider-container input {
-  flex: 1;
 }
 
 .option-buttons {
@@ -579,6 +647,49 @@ export default {
 
 .checkbox-label input {
   margin-right: 10px;
+}
+
+.submit-btn {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.submit-btn:hover {
+  opacity: 0.9;
+}
+
+.submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 25px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(106, 17, 203, 0.1);
+  border-left-color: #6A11CB;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Learning module styles */
@@ -631,6 +742,12 @@ export default {
 .agenda-list li {
   padding: 8px 0;
   color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.agenda-list li:hover {
+  color: #6A11CB;
 }
 
 .dark-mode .agenda-list li {
@@ -766,11 +883,24 @@ export default {
   background-color: rgba(161, 126, 221, 0.2);
 }
 
+.definitions-section {
+  margin-top: 30px;
+}
+
+.definitions-section h3 {
+  color: #6A11CB;
+  margin-bottom: 15px;
+}
+
+.dark-mode .definitions-section h3 {
+  color: #a17edd;
+}
+
 .definition-box {
   background: #f8f9fa;
   border-left: 4px solid #6A11CB;
   padding: 15px;
-  margin: 20px 0;
+  margin: 15px 0;
   border-radius: 4px;
 }
 
@@ -792,6 +922,7 @@ export default {
   justify-content: center;
   border-radius: 8px;
   color: #666;
+  padding: 20px;
 }
 
 .dark-mode .image-placeholder {
@@ -799,211 +930,11 @@ export default {
   color: #bbb;
 }
 
-.planet-features {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  margin: 30px 0;
-}
-
-.planet-card {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  text-align: center;
-  transition: transform 0.2s;
-}
-
-.dark-mode .planet-card {
-  background: #333;
-}
-
-.planet-card:hover {
-  transform: translateY(-5px);
-}
-
-.planet-card h3 {
-  margin: 15px 0;
-  color: #6A11CB;
-}
-
-.dark-mode .planet-card h3 {
-  color: #a17edd;
-}
-
-.planet-card ul {
-  text-align: left;
-  padding-left: 20px;
-  margin-top: 15px;
-}
-
-.planet-card li {
-  margin-bottom: 5px;
-}
-
-.planet-image {
-  height: 100px;
-  width: 100px;
-  border-radius: 50%;
-  margin: 0 auto;
-}
-
-.earth {
-  background: linear-gradient(135deg, #2666CF 0%, #57A944 100%);
-}
-
-.mars {
-  background: linear-gradient(135deg, #E65C4F 0%, #B1361E 100%);
-}
-
-.jupiter {
-  background: linear-gradient(135deg, #E8B88F 0%, #BE7242 100%);
-}
-
-.practice-activity {
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.dark-mode .practice-activity {
-  background: #333;
-}
-
-.instruction-block {
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
-}
-
-.dark-mode .instruction-block {
-  border-color: #444;
-}
-
-.quiz-container {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.quiz-question {
-  margin-bottom: 25px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.dark-mode .quiz-question {
-  border-color: #444;
-}
-
-.question-text {
-  font-weight: 600;
-  margin-bottom: 15px;
-  font-size: 1.1rem;
-}
-
-.answer-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.answer-options button {
-  padding: 10px 15px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex: 1;
-  min-width: 100px;
-}
-
-.dark-mode .answer-options button {
-  background: #444;
-  border-color: #555;
-  color: #e0e0e0;
-}
-
-.answer-options button:hover:not(:disabled) {
-  background: #e8e8e8;
-}
-
-.dark-mode .answer-options button:hover:not(:disabled) {
-  background: #555;
-}
-
-.answer-options button.selected {
-  background: #d9e8ff;
-  border-color: #6A11CB;
-  font-weight: 500;
-}
-
-.dark-mode .answer-options button.selected {
-  background: #2a3a59;
-  border-color: #a17edd;
-}
-
-.answer-options button.correct {
-  background: #d4edda;
-  border-color: #28a745;
-  color: #155724;
-}
-
-.dark-mode .answer-options button.correct {
-  background: #1e3e2f;
-  border-color: #28a745;
-  color: #8fd19e;
-}
-
-.answer-options button.incorrect {
-  background: #f8d7da;
-  border-color: #dc3545;
-  color: #721c24;
-}
-
-.dark-mode .answer-options button.incorrect {
-  background: #3e1f24;
-  border-color: #dc3545;
-  color: #eb8c95;
-}
-
-.answer-feedback {
-  padding: 10px 15px;
-  border-radius: 6px;
-  font-weight: 500;
-}
-
-.check-answers-btn {
-  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 500;
-  display: block;
-  margin: 20px auto 10px;
-}
-
-.quiz-results {
-  text-align: center;
-  margin: 20px 0;
-  padding: 15px;
-  background: #d9e8ff;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.dark-mode .quiz-results {
-  background: #2a3a59;
-}
-
 .key-takeaways {
   background: #f8f9fa;
   padding: 20px;
   border-radius: 8px;
-  margin-bottom: 30px;
+  margin: 30px 0;
 }
 
 .dark-mode .key-takeaways {
@@ -1027,106 +958,6 @@ export default {
   margin-bottom: 8px;
 }
 
-.ai-help-section {
-  margin-top: 40px;
-}
-
-.ai-help-section h3 {
-  color: #6A11CB;
-  margin-bottom: 10px;
-}
-
-.dark-mode .ai-help-section h3 {
-  color: #a17edd;
-}
-
-.ai-input {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-  margin-bottom: 20px;
-}
-
-.ai-input textarea {
-  flex: 1;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  resize: vertical;
-}
-
-.dark-mode .ai-input textarea {
-  background: #333;
-  border-color: #555;
-  color: #e0e0e0;
-}
-
-.ai-input button {
-  background: linear-gradient(135deg, #6A11CB 0%, #2575FC 100%);
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.ai-input button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.ai-loading {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  margin-bottom: 20px;
-}
-
-.dark-mode .ai-loading {
-  background: #333;
-}
-
-.loading-spinner {
-  width: 25px;
-  height: 25px;
-  border: 3px solid rgba(106, 17, 203, 0.3);
-  border-radius: 50%;
-  border-top-color: #6A11CB;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.ai-response {
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin-top: 20px;
-  line-height: 1.7;
-}
-
-.dark-mode .ai-response {
-  background: #333;
-}
-
-/* Theme-specific styles */
-.calm-blue h2, .calm-blue h3 {
-  color: #3a7bd5;
-}
-
-.soft-beige h2, .soft-beige h3 {
-  color: #b3825c;
-}
-
 /* Transition animations */
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.5s;
@@ -1145,12 +976,13 @@ export default {
     flex: none;
   }
   
-  .planet-features {
-    grid-template-columns: 1fr;
-  }
-  
   .ai-input {
     flex-direction: column;
+  }
+  
+  .submit-btn {
+    align-self: center;
+    width: 100%;
   }
 }
 </style>

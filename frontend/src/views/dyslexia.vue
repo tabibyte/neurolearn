@@ -225,6 +225,12 @@ export default {
 </style>
 
 <style scoped>
+
+input, textarea, select {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
 .dyslexia-container {
   max-width: 100%;
 }
