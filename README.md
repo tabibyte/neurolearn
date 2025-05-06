@@ -32,8 +32,6 @@ pip install -r requirements.txt
 python -m app.main
 ```
 
-The API will be available at http://localhost:8000
-
 ### Frontend
 
 ```bash
@@ -46,12 +44,3 @@ npm install
 # Run development server
 npm run serve
 ```
-
-The Vue app will be available at http://localhost:3000
-
-## API Documentation
-
-When the backend is running, API documentation is available at:
-
-- http://localhost:8000/docs (Swagger UI)
-- http://localhost:8000/redoc (ReDoc)
