@@ -26,7 +26,7 @@
             :key="index"
             :class="['message', message.sender]"
           >
-            <div class="message-content" v-html="formatMessage(message.text)"></div>
+            <div class="message-content" v-html="message.text"></div>
           </div>
           
           <!-- Loading indicator -->
@@ -62,17 +62,17 @@
         <h3>Learning Preferences</h3>
         <div class="preferences">
           <label>
-            <input type="checkbox" v-model="preferences.visualAids">
+            <input type="checkbox" v-model="preferences.visual_aids">
             Include visual aids
           </label>
           
           <label>
-            <input type="checkbox" v-model="preferences.simplifiedLanguage">
+            <input type="checkbox" v-model="preferences.simplified_language">
             Use simplified language
           </label>
           
           <label>
-            <input type="checkbox" v-model="preferences.structuredFormat">
+            <input type="checkbox" v-model="preferences.structured_format">
             Structure content with clear steps
           </label>
         </div>
@@ -90,16 +90,12 @@
         </div>
       </div>
     </div>
-    
-    <p class="note">
-      Note: This is a demo version of the AI Assistant. 
-      In the production version, we'll integrate fully with Gemini AI.
-      For now, the responses are simulated.
-    </p>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'AIAssistant',
   data() {
@@ -108,9 +104,9 @@ export default {
       messages: [],
       isLoading: false,
       preferences: {
-        visualAids: false,
-        simplifiedLanguage: false,
-        structuredFormat: false
+        visual_aids: false,
+        simplified_language: false,
+        structured_format: false
       },
       examplePrompts: [
         "Explain photosynthesis in simple terms",
@@ -134,20 +130,29 @@ export default {
       this.userInput = ''
       this.isLoading = true
       
-      // Simulate API delay
-      setTimeout(() => {
-        // In a real implementation, this would call the Gemini API
-        // through our backend
-        const aiResponse = this.simulateAIResponse(userQuestion)
+      try {
+        // Call our API endpoint that integrates with Gemini
+        const response = await axios.post('/api/assistant', {
+          prompt: userQuestion,
+          learning_preferences: this.preferences,
+          context: null // Optional context could be added here
+        })
         
         this.messages.push({
           sender: 'ai',
-          text: aiResponse
+          text: response.data.response
         })
+      } catch (error) {
+        console.error('Error getting AI response:', error)
         
+        this.messages.push({
+          sender: 'ai',
+          text: '<p>Sorry, I encountered an error while processing your request. Please try again later.</p>'
+        })
+      } finally {
         this.isLoading = false
         this.$nextTick(() => this.scrollToBottom())
-      }, 1500)
+      }
     },
     
     scrollToBottom() {
@@ -157,66 +162,6 @@ export default {
     
     useExamplePrompt(prompt) {
       this.userInput = prompt
-    },
-    
-    simulateAIResponse(question) {
-      // This is a placeholder function that simulates AI responses
-      // In the real implementation, we would call our backend API
-      // which would then use Gemini API
-      
-      let response = ''
-      
-      if (question.toLowerCase().includes('photosynthesis')) {
-        response = `<h3>Photosynthesis Explained</h3>
-          <p>Photosynthesis is how plants make their food. Here's the simple version:</p>
-          <ol>
-            <li>Plants take in sunlight through their leaves</li>
-            <li>They absorb water through their roots</li>
-            <li>They take in carbon dioxide from the air</li>
-            <li>Using these ingredients, they create sugar (food) and oxygen</li>
-          </ol>
-          <p>The oxygen is released into the air, and we breathe it!</p>`
-          
-        if (this.preferences.visualAids) {
-          response += `<div class="visual-aid">
-            <p>[Diagram: Sunlight → Leaf → (Water + CO2) → Sugar + Oxygen]</p>
-          </div>`
-        }
-      } 
-      else if (question.toLowerCase().includes('fractions')) {
-        response = `<h3>Understanding Fractions</h3>
-          <p>A fraction represents a part of a whole. The bottom number (denominator) tells you how many parts the whole is divided into. The top number (numerator) tells you how many of those parts you have.</p>
-          <p>For example, in 3/4:</p>
-          <ul>
-            <li>4 (denominator) means the whole is divided into 4 equal parts</li>
-            <li>3 (numerator) means we have 3 of those parts</li>
-          </ul>`
-          
-        if (this.preferences.visualAids) {
-          response += `<div class="visual-aid">
-            <p>[Diagram: Circle divided into 4 parts with 3 colored in]</p>
-          </div>`
-        }
-      }
-      else {
-        response = `<p>I'd be happy to help with "${question}".</p>
-          <p>This is a demo version of the AI Assistant. In the full version, I would provide a complete, personalized response using Gemini AI.</p>
-          <p>The actual implementation will connect to the Gemini API through our FastAPI backend to generate helpful, adapted learning content.</p>`
-      }
-      
-      if (this.preferences.simplifiedLanguage) {
-        response += `<div class="note">
-          <p><strong>Simplified Version:</strong> I've used simpler words and shorter sentences to make this easier to understand.</p>
-        </div>`
-      }
-      
-      return response
-    },
-    
-    formatMessage(text) {
-      // Simple formatting function that preserves HTML
-      // In a production app, you'd want to sanitize this
-      return text
     }
   },
   mounted() {

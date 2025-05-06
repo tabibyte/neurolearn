@@ -4,8 +4,9 @@ import uvicorn
 import os
 from dotenv import load_dotenv
 
-# Import our API router
+# Import our API routers
 from app.api.resources import router as resources_router
+from app.api.aiassistant import router as ai_assistant_router
 # Import database functions
 from app.models.database import create_tables
 
@@ -30,6 +31,7 @@ app.add_middleware(
 
 # Include our routers
 app.include_router(resources_router, prefix="/api", tags=["Learning Resources"])
+app.include_router(ai_assistant_router, prefix="/api", tags=["AI Assistant"])
 
 # Create database tables
 create_tables()

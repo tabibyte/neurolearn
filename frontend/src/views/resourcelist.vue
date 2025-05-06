@@ -10,7 +10,7 @@
     
     <div v-if="showForm" class="resource-form">
       <h2>Create New Learning Resource</h2>
-      <form @submit.prevent="createResource">
+      <form @submit.prevent="submitResource">
         <div class="form-group">
           <label for="title">Title</label>
           <input 
