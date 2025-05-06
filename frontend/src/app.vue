@@ -7,23 +7,23 @@
       <nav>
         <router-link to="/" exact>
           <i class="icon home-icon"></i>
-          <span>Home</span>
+          <span>Ana Sayfa</span>
         </router-link>
         <router-link to="/dyslexia">
           <i class="icon dyslexia-icon"></i>
-          <span>Dyslexia</span>
+          <span>Disleksi</span>
         </router-link>
         <router-link to="/adhd">
           <i class="icon adhd-icon"></i>
-          <span>ADHD</span>
+          <span>DEHB</span>
         </router-link>
         <router-link to="/autism">
           <i class="icon autism-icon"></i>
-          <span>Autism</span>
+          <span>Otizm</span>
         </router-link>
         <router-link to="/dyscalculia">
           <i class="icon dyscalculia-icon"></i>
-          <span>Dyscalculia</span>
+          <span>Diskalkuli</span>
         </router-link>
       </nav>
     </div>

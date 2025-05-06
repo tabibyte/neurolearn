@@ -1,48 +1,48 @@
 <template>
   <div class="adhd-container">
     <div class="page-header">
-      <h1>ADHD Learning Tools</h1>
-      <p>Focus-friendly study environment with AI assistance and structured learning</p>
+      <h1>DEHB Öğrenme Araçları</h1>
+      <p>Odaklanma, organizasyon ve verimli öğrenme için araçlar</p>
     </div>
     
     <div class="content-section">
       <div class="learning-tools">
-        <!-- Focus Tools Panel - Left Side -->
+
         <div class="focus-panel">
           <div class="pomodoro-timer">
-            <h3>Focus Timer</h3>
+            <h3>Odaklanma Zamanlayıcısı</h3>
             
             <div class="timer-display">
               <div class="time">{{ formatTime }}</div>
-              <div class="timer-label">{{ isBreak ? 'Break Time' : 'Focus Time' }}</div>
+              <div class="timer-label">{{ isBreak ? 'Mola Zamanı' : 'Odaklanma Zamanı' }}</div>
             </div>
             
             <div class="timer-controls">
-              <button @click="startTimer" v-if="!timerActive">Start</button>
-              <button @click="pauseTimer" v-else>Pause</button>
-              <button @click="resetTimer">Reset</button>
+              <button @click="startTimer" v-if="!timerActive">Başlat</button>
+              <button @click="pauseTimer" v-else>Duraklat</button>
+              <button @click="resetTimer">Sıfırla</button>
             </div>
             
             <div class="timer-settings">
               <div class="setting">
-                <label>Focus: {{ focusDuration }}m</label>
+                <label>Odaklanma: {{ focusDuration }}dk</label>
                 <input type="range" v-model="focusDuration" :disabled="timerActive" min="1" max="60">
               </div>
               <div class="setting">
-                <label>Break: {{ breakDuration }}m</label>
+                <label>Mola: {{ breakDuration }}dk</label>
                 <input type="range" v-model="breakDuration" :disabled="timerActive" min="1" max="30">
               </div>
             </div>
           </div>
           
           <div class="task-manager">
-            <h3>Task Breakdown</h3>
+            <h3>Görev Analizi</h3>
             
             <div class="task-input">
               <input 
                 v-model="newTask" 
                 @keyup.enter="addTask" 
-                placeholder="Add a task..."
+                placeholder="Görev ekle..."
               >
               <button @click="addTask">+</button>
             </div>
@@ -63,39 +63,38 @@
               </div>
               
               <div v-if="tasks.length === 0" class="empty-tasks">
-                Add tasks to break down your work
+                Çalışmanızı bölmek için görevler ekleyin
               </div>
             </div>
           </div>
         </div>
         
-        <!-- AI Assistant - Right Side (Main Focus) -->
         <div class="ai-assistant">
-          <h2>AI Learning Assistant</h2>
-          <p>Get personalized help with focus, organization, and learning strategies</p>
+          <h2>Yapay Zeka Öğrenme Asistanı</h2>
+          <p>Odaklanma, organizasyon ve öğrenme stratejileri konusunda kişiselleştirilmiş yardım alın</p>
           
           <div class="ai-input">
             <textarea 
               v-model="aiPrompt" 
-              placeholder="Ask for help with your learning material, request strategies to stay focused, or get assistance with organizing information..."
+              placeholder="Öğrenme materyaliniz için yardım isteyin, odaklanmak için stratejiler isteyin veya bilgileri organize etmek için yardım alın..."
               rows="5"
             ></textarea>
             
             <div class="ai-options">
               <div class="help-options">
-                <button @click="applyTemplate('explain')" class="template-btn">Explain Topic</button>
-                <button @click="applyTemplate('organize')" class="template-btn">Help Organize</button>
-                <button @click="applyTemplate('focus')" class="template-btn">Focus Strategies</button>
+                <button @click="applyTemplate('explain')" class="template-btn">Konuyu Açıkla</button>
+                <button @click="applyTemplate('organize')" class="template-btn">Bilgiyi Düzenle</button>
+                <button @click="applyTemplate('focus')" class="template-btn">Odaklanma İpuçları</button>
               </div>
               
               <div class="preferences">
                 <label>
                   <input type="checkbox" v-model="aiPreferences.structured_format">
-                  Clear steps
+                  Yapılandırılmış format (liste, başlıklar vb.)
                 </label>
                 <label>
                   <input type="checkbox" v-model="aiPreferences.visual_aids">
-                  Visual aids
+                  Görsel destek öğeleri ekle
                 </label>
               </div>
               
@@ -104,22 +103,22 @@
                 :disabled="!aiPrompt.trim() || isLoadingAI"
                 class="submit-btn"
               >
-                Get Help
+                Yardım Al
               </button>
             </div>
           </div>
           
           <div v-if="isLoadingAI" class="loading">
             <div class="loading-spinner"></div>
-            <p>Processing your request...</p>
+            <p>İsteğiniz işleniyor...</p>
           </div>
           
           <div v-if="aiResponse" class="ai-response">
-            <h3>Response</h3>
+            <h3>Yanıt</h3>
             <div class="response-content" v-html="aiResponse"></div>
             
             <div class="notes-integration">
-              <button @click="saveToNotes" class="save-notes-btn">Save to Notes</button>
+              <button @click="saveToNotes" class="save-notes-btn">Notlara Kaydet</button>
             </div>
           </div>
         </div>
@@ -129,23 +128,23 @@
     <div class="content-section" v-if="notes.trim()">
       <div class="notes-section">
         <div class="notes-header">
-          <h2>Your Notes</h2>
-          <button @click="clearNotes" class="clear-btn">Clear</button>
+          <h2>Notlarınız</h2>
+          <button @click="clearNotes" class="clear-btn">Temizle</button>
         </div>
         
         <textarea 
           v-model="notes" 
-          placeholder="Your saved notes will appear here."
+          placeholder="Önemli bilgileri buraya not alın..."
           rows="8"
         ></textarea>
         
         <div class="note-tips">
-          <h4>Note-Taking Tips for ADHD</h4>
+          <h4>DEHB için Not Alma İpuçları</h4>
           <ul>
-            <li>Use color coding for different topics</li>
-            <li>Keep sentences short and to the point</li>
-            <li>Use bullet points instead of paragraphs</li>
-            <li>Create mind maps to visualize concepts</li>
+            <li>Farklı konular için renk kodlaması kullanın</li>
+            <li>Cümleleri kısa ve öz tutun</li>
+            <li>Paragraflar yerine madde işaretleri kullanın</li>
+            <li>Kavramları görselleştirmek için zihin haritaları oluşturun</li>
           </ul>
         </div>
       </div>
@@ -160,7 +159,6 @@ export default {
   name: 'ADHD',
   data() {
     return {
-      // Timer variables
       timerActive: false,
       isBreak: false,
       timeLeft: 0,
@@ -168,14 +166,14 @@ export default {
       breakDuration: 5,
       timer: null,
       
-      // Task management
+
       newTask: '',
       tasks: [],
       
-      // Notes
+
       notes: '',
       
-      // AI assistant
+
       aiPrompt: '',
       aiResponse: '',
       isLoadingAI: false,
@@ -184,9 +182,9 @@ export default {
         visual_aids: false
       },
       templates: {
-        explain: "Could you explain this topic in an ADHD-friendly way: ",
-        organize: "Help me organize this information into a structured format: ",
-        focus: "Can you suggest focus strategies for working on: "
+        explain: "Bu konuyu DEHB dostu bir şekilde Türkçe olarak açıklayabilir misiniz: ",
+        organize: "Bu bilgileri yapılandırılmış bir formatta Türkçe olarak düzenlememde yardımcı olur musunuz: ",
+        focus: "Şu konuda çalışırken odaklanma stratejilerini Türkçe olarak önerebilir misiniz: "
       }
     }
   },
@@ -201,7 +199,7 @@ export default {
     startTimer() {
       if (!this.timerActive) {
         if (this.timeLeft === 0) {
-          // Initial state or reset state
+
           this.timeLeft = this.focusDuration * 60;
           this.isBreak = false;
         }
@@ -212,15 +210,15 @@ export default {
           if (this.timeLeft > 0) {
             this.timeLeft--;
           } else {
-            // Time is up, toggle between focus and break
+
             this.playNotificationSound();
             
             if (this.isBreak) {
-              // Break time over, start focus time
+
               this.timeLeft = this.focusDuration * 60;
               this.isBreak = false;
             } else {
-              // Focus time over, start break
+
               this.timeLeft = this.breakDuration * 60;
               this.isBreak = true;
             }
@@ -238,7 +236,7 @@ export default {
       this.isBreak = false;
     },
     playNotificationSound() {
-      // Simple browser notification sound
+
       const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
       audio.play();
     },
@@ -256,9 +254,16 @@ export default {
     },
     applyTemplate(templateName) {
       if (this.templates[templateName]) {
-        // If there's already text, add a space first
+
         const prefix = this.aiPrompt.trim() ? this.aiPrompt + "\n\n" : "";
+        
+
         this.aiPrompt = prefix + this.templates[templateName];
+        
+
+        if (!this.aiPrompt.includes("Türkçe")) {
+          this.aiPrompt += " (Lütfen yanıtınızı Türkçe olarak verin.)";
+        }
       }
     },
     async getAIResponse() {
@@ -267,26 +272,42 @@ export default {
       this.isLoadingAI = true;
       
       try {
-        // Add ADHD context to help the AI provide more relevant responses
-        const prompt = `${this.aiPrompt} (Please provide a response that's helpful for someone with ADHD - clear structure, concise points, visual elements where helpful)`;
+
+        const prompt = `${this.aiPrompt}
+        
+        (Lütfen DEHB'li biri için yararlı olacak bir yanıt sağlayın - net yapı, özlü noktalar ve yararlı olduğu durumlarda görsel öğeler. Yanıtınızı kesinlikle Türkçe dilinde verin. Yanıtınızda HTML etiketlerinin açıklamalarını eklemeyin veya HTML yapısını açıklamayın.)`;
         
         const response = await axios.post('/api/assistant', {
           prompt: prompt,
           learning_preferences: {
             ...this.aiPreferences,
-            simplified_language: true // Always use clear language for ADHD
-          }
+            simplified_language: true 
+          },
+          language: "tr" 
         });
         
-        // Clean up the response by removing code block markers
+
         let cleanedResponse = response.data.response;
+        
+
         cleanedResponse = cleanedResponse.replace(/```html/g, '');
         cleanedResponse = cleanedResponse.replace(/```/g, '');
         
+
+        cleanedResponse = cleanedResponse.replace(/\*\*Clear headings:\*\* Each section starts with an.+?separation\./g, '');
+        cleanedResponse = cleanedResponse.replace(/\*\*Simple language:\*\*.+?sentences\./g, '');
+        cleanedResponse = cleanedResponse.replace(/\*\*Structured format:\*\*.+?information\./g, '');
+        cleanedResponse = cleanedResponse.replace(/\*\*Visual aid suggestion:\*\*.+?accessibility\./g, '');
+        cleanedResponse = cleanedResponse.replace(/\*\*Turkish language:\*\*.+?requested\./g, '');
+        cleanedResponse = cleanedResponse.replace(/\*\*Focus on ADHD:\*\*.+?motivation\./g, '');
+        cleanedResponse = cleanedResponse.replace(/This improved response.+?follow\./g, '');
+        cleanedResponse = cleanedResponse.replace(/Remember to replace.+?sections\./g, '');
+        cleanedResponse = cleanedResponse.replace(/This HTML provides:.+$/gs, '');
+        
         this.aiResponse = cleanedResponse;
       } catch (error) {
-        console.error('Error getting AI response:', error);
-        this.aiResponse = '<p>Sorry, there was an error getting a response. Please try again.</p>';
+        console.error('Yapay zeka yanıtı alınırken hata:', error);
+        this.aiResponse = '<p>Üzgünüz, yanıt alınırken bir hata oluştu. Lütfen tekrar deneyin.</p>';
       } finally {
         this.isLoadingAI = false;
       }
@@ -294,48 +315,48 @@ export default {
     saveToNotes() {
       if (!this.aiResponse) return;
       
-      // Extract text content from HTML response
+
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = this.aiResponse;
       const textContent = tempDiv.textContent || tempDiv.innerText || '';
       
-      // Add timestamp
+
       const now = new Date();
       const timestamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
       
-      // Format the notes to be added
-      const notesToAdd = `--- AI RESPONSE (${timestamp}) ---\n\n${textContent}\n\n`;
+
+      const notesToAdd = `--- YAPAY ZEKA YANITI (${timestamp}) ---\n\n${textContent}\n\n`;
       
-      // Add to existing notes
+
       this.notes = this.notes.trim() ? this.notes + '\n\n' + notesToAdd : notesToAdd;
     },
     clearNotes() {
-      if (confirm("Are you sure you want to clear all your notes?")) {
+      if (confirm("Tüm notlarınızı temizlemek istediğinizden emin misiniz?")) {
         this.notes = '';
       }
     }
   },
   beforeUnmount() {
-    // Clean up timer when component is destroyed
+
     if (this.timer) {
       clearInterval(this.timer);
     }
   },
   mounted() {
-    // Initialize timer
+
     this.timeLeft = this.focusDuration * 60;
     
-    // Load saved tasks from localStorage if available
+
     const savedTasks = localStorage.getItem('adhd-tasks');
     if (savedTasks) {
       try {
         this.tasks = JSON.parse(savedTasks);
       } catch (e) {
-        console.error('Error loading saved tasks', e);
+        console.error('Kaydedilmiş görevler yüklenirken hata', e);
       }
     }
     
-    // Load saved notes if available
+
     const savedNotes = localStorage.getItem('adhd-notes');
     if (savedNotes) {
       this.notes = savedNotes;
@@ -356,7 +377,6 @@ export default {
 </script>
 
 <style scoped>
-
 input, textarea, select {
   box-sizing: border-box;
   max-width: 100%;
@@ -386,9 +406,11 @@ input, textarea, select {
   padding: 25px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
   margin-bottom: 30px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* Two-column layout for tools */
+
 .learning-tools {
   display: flex;
   flex-wrap: wrap;
@@ -406,7 +428,7 @@ input, textarea, select {
   min-width: 400px;
 }
 
-/* Pomodoro Timer */
+
 .pomodoro-timer {
   padding: 20px;
   background-color: #f8f9fa;
@@ -478,7 +500,7 @@ input, textarea, select {
   max-width: 200px;
 }
 
-/* Task Manager */
+
 .task-manager {
   padding: 20px;
   background-color: #f8f9fa;
@@ -501,6 +523,7 @@ input, textarea, select {
   border: 1px solid #ddd;
   border-radius: 6px 0 0 6px;
   font-size: 1rem;
+  box-sizing: border-box;
 }
 
 .task-input button {
@@ -644,6 +667,12 @@ input, textarea, select {
   resize: vertical;
   min-height: 120px;
   border-bottom: none;
+  box-sizing: border-box;
+}
+
+.ai-input textarea:focus {
+  border-color: #6A11CB;
+  outline: none;
 }
 
 .ai-options {
@@ -654,6 +683,8 @@ input, textarea, select {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .help-options {
@@ -734,6 +765,10 @@ input, textarea, select {
   background: #f9f8ff;
   border-radius: 8px;
   margin-top: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .ai-response h3 {
@@ -807,6 +842,7 @@ input, textarea, select {
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 20px;
+  box-sizing: border-box;
 }
 
 .note-tips {

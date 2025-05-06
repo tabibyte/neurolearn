@@ -42,15 +42,13 @@ class GeminiService:
             
             # Create a system message that adapts to learning preferences
             system_prompt = self._create_system_prompt(preferences)
-            
-            # Add context if available
+
             if context:
                 system_prompt += f"\nAdditional context: {context}"
-                
-            # Create the chat session
+
             chat = self.model.start_chat(history=[])
             
-            # Generate the response
+
             response = chat.send_message(
                 [system_prompt, prompt]
             )
@@ -73,7 +71,6 @@ class GeminiService:
         paragraphs (<p>), lists (<ul>, <ol>), and other HTML elements to structure your response.
         """
         
-        # Add specific instructions based on preferences
         if preferences.get("visual_aids", False):
             system_prompt += """
             Include visual descriptions in your response. When describing visual concepts, use clear 

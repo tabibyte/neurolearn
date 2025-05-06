@@ -8,7 +8,6 @@ from pydantic import BaseModel
 
 router = APIRouter()
 
-# Pydantic model for request/response
 class LearningResourceSchema(BaseModel):
     id: int = None
     title: str
@@ -23,13 +22,11 @@ class LearningResourceSchema(BaseModel):
     class Config:
         orm_mode = True
 
-# Get all learning resources
 @router.get("/resources/", response_model=List[LearningResourceSchema])
 def get_resources(db: Session = Depends(get_db)):
     resources = db.query(LearningResource).all()
     return resources
 
-# Get a specific resource by ID
 @router.get("/resources/{resource_id}", response_model=LearningResourceSchema)
 def get_resource(resource_id: int, db: Session = Depends(get_db)):
     resource = db.query(LearningResource).filter(LearningResource.id == resource_id).first()
@@ -37,7 +34,6 @@ def get_resource(resource_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Resource not found")
     return resource
 
-# Create a new learning resource
 @router.post("/resources/", response_model=LearningResourceSchema)
 def create_resource(resource: LearningResourceSchema, db: Session = Depends(get_db)):
     db_resource = LearningResource(**resource.dict(exclude={"id"}))

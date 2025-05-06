@@ -1,32 +1,32 @@
 <template>
   <div class="autism-container">
     <div class="page-header">
-      <h1>Autism Learning Tools</h1>
-      <p>Structured learning with predictable patterns and sensory considerations</p>
+      <h1>Otizm Öğrenme Araçları</h1>
+      <p>Öngörülebilir desenlerle yapılandırılmış öğrenme ve duyusal düzenlemeler</p>
     </div>
     
     <!-- Main AI Learning Assistant Section -->
     <div class="content-section">
       <div class="ai-learning-assistant">
-        <h2>AI Learning Assistant</h2>
-        <p>Get personalized explanations on any topic with autism-friendly formatting</p>
+        <h2>Yapay Zeka Öğrenme Asistanı</h2>
+        <p>Otizm dostu formatlama ile herhangi bir konu hakkında kişiselleştirilmiş bilgi alın</p>
         
         <div class="ai-input-section">
           <textarea 
             v-model="aiPrompt" 
-            placeholder="What topic would you like to learn about? Ask a question or request information on any subject..."
+            placeholder="Hangi konu hakkında öğrenmek istersiniz? Bir soru sorun veya herhangi bir konu hakkında bilgi isteyin..."
             rows="4"
           ></textarea>
           
           <div class="ai-preferences">
             <div class="preferences-toggle" @click="showPreferences = !showPreferences">
-              <span>Learning Preferences</span>
+              <span>Öğrenme Tercihler</span>
               <span class="toggle-icon">{{ showPreferences ? '▼' : '▶' }}</span>
             </div>
             
             <div v-if="showPreferences" class="preferences-panel">
               <div class="preference-item">
-                <label>Text Presentation</label>
+                <label>Metin Sunumu</label>
                 <div class="option-buttons">
                   <button 
                     :class="{ active: settings.textChunking === 'normal' }"
@@ -38,19 +38,19 @@
                     :class="{ active: settings.textChunking === 'chunked' }"
                     @click="settings.textChunking = 'chunked'"
                   >
-                    Chunked
+                    Parçalanmış
                   </button>
                   <button 
                     :class="{ active: settings.textChunking === 'highlighted' }"
                     @click="settings.textChunking = 'highlighted'"
                   >
-                    Highlighted
+                    Vurgulanmış
                   </button>
                 </div>
               </div>
               
               <div class="preference-item">
-                <label>Visual Theme</label>
+                <label>Görsel Tema</label>
                 <div class="theme-options">
                   <button 
                     v-for="theme in visualThemes" 
@@ -65,19 +65,19 @@
               </div>
               
               <div class="preference-item">
-                <label>Learning Elements</label>
+                <label>Öğrenme Öğeleri</label>
                 <div class="checkbox-options">
                   <label class="checkbox-label">
                     <input type="checkbox" v-model="settings.showVisuals">
-                    Include visual supports
+                    Görsel destekler ekle
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" v-model="settings.showAgenda">
-                    Show agenda/structure
+                    Ajanda/yapı göster
                   </label>
                   <label class="checkbox-label">
                     <input type="checkbox" v-model="settings.showTransitions">
-                    Show clear transitions
+                    Net geçişler göster
                   </label>
                 </div>
               </div>
@@ -89,13 +89,13 @@
             :disabled="!aiPrompt.trim() || isLoadingAI"
             class="submit-btn"
           >
-            Generate Learning Content
+            Öğrenme İçeriği Oluştur
           </button>
         </div>
         
         <div v-if="isLoadingAI" class="loading">
           <div class="loading-spinner"></div>
-          <p>Creating your personalized learning content...</p>
+          <p>Kişiselleştirilmiş öğrenme içeriği oluşturuluyor...</p>
         </div>
       </div>
     </div>
@@ -158,7 +158,7 @@
             </div>
             
             <div v-if="currentStep === processedResponse.sections.length && processedResponse.summary" class="key-takeaways">
-              <h3>Key Takeaways</h3>
+              <h3>Son</h3>
               <ul>
                 <li v-for="(point, index) in processedResponse.summary" :key="index">{{ point }}</li>
               </ul>
@@ -293,18 +293,19 @@ export default {
       
       try {
         const prompt = `
-        Create a structured, autism-friendly learning module about: ${this.aiPrompt}
+        Şu konu hakkında yapılandırılmış, otizm dostu bir öğrenme modülü oluşturun: ${this.aiPrompt}
         
-        Format your response as a structured learning guide with:
+        Yanıtınızı aşağıdaki yapıya sahip bir öğrenme kılavuzu olarak biçimlendirin:
         
-        1. A brief introduction to the topic
-        2. 2-4 discrete sections explaining important parts of the topic
-        3. A visual description for each section that could be illustrated
-        4. Important definitions or concepts in each section
-        5. A summary with 3-5 key points at the end
+        1. Konuya kısa bir giriş
+        2. Konunun önemli kısımlarını açıklayan 2-4 ayrı bölüm
+        3. Her bölüm için resimlendirebilecek görsel bir açıklama
+        4. Her bölümdeki önemli tanımlar veya kavramlar
+        5. Sonunda 3-5 ana noktayla bir özet
         
-        Use precise language, avoid metaphors, use concrete examples, and maintain a clear structure.
-        Include definitions for any potentially unfamiliar terms.
+        Kesin dil kullanın, mecazlardan kaçının, somut örnekler kullanın ve net bir yapı sürdürün.
+        Potansiyel olarak tanıdık olmayan terimler için tanımlar ekleyin.
+        Yanıtınızı Türkçe olarak verin.
         `;
         
         const response = await axios.post('/api/assistant', {
@@ -312,13 +313,13 @@ export default {
           learning_preferences: {
             visual_aids: this.settings.showVisuals,
             structured_format: true,
-            simplified_language: false // Autism often benefits from precise rather than simplified language
+            simplified_language: false 
           }
         });
         
         this.aiResponse = response.data.response;
         
-        // Process and structure the AI response
+
         this.processAIResponse(this.aiResponse);
         
       } catch (error) {
@@ -330,35 +331,29 @@ export default {
     },
     
     processAIResponse(response) {
-      // Clean up code blocks and other markdown artifacts
+
       let cleanedResponse = response.replace(/```html/g, '').replace(/```/g, '');
-      
-      // Create a structured object from the AI response
-      // This is a simplistic parser - a more robust solution would be needed for production
+
       try {
         const sections = [];
-        // Removed the unused 'currentSection' variable
-        
-        // Split by headers
+
         const headerMatches = cleanedResponse.match(/<h[1-3][^>]*>.*?<\/h[1-3]>/g) || [];
         let contentParts = cleanedResponse.split(/<h[1-3][^>]*>.*?<\/h[1-3]>/);
         
-        // Process introduction (before first header, if exists)
+
         if (contentParts[0].trim()) {
           sections.push({
-            title: 'Introduction',
+            title: 'Giriş',
             content: contentParts[0].trim(),
             definitions: this.extractDefinitions(contentParts[0]),
             visualDesc: this.extractVisualDescription(contentParts[0])
           });
         }
         
-        // Process each section
         for (let i = 0; i < headerMatches.length; i++) {
           const headerText = headerMatches[i].replace(/<\/?h[1-3][^>]*>/g, '').trim();
           const content = contentParts[i + 1] || '';
           
-          // Skip summary section - we'll handle it separately
           if (headerText.toLowerCase().includes('summary') || 
               headerText.toLowerCase().includes('takeaway') ||
               headerText.toLowerCase().includes('key point')) {
@@ -385,7 +380,7 @@ export default {
         
       } catch (error) {
         console.error('Error processing AI response:', error);
-        // Fallback to a simple structure
+
         this.processedResponse = {
           sections: [{
             title: 'Learning Content',
@@ -401,7 +396,6 @@ export default {
     extractDefinitions(content) {
       const definitions = [];
       
-      // Look for definition patterns like "Term: definition" or <strong>Term:</strong> definition
       const definitionRegex = /<strong>([^:]+):<\/strong>\s*([^<]+)/g;
       let match;
       

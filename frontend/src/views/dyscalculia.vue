@@ -1,20 +1,20 @@
 <template>
   <div class="dyscalculia-container">
     <div class="page-header">
-      <h1>Dyscalculia Learning Tools</h1>
-      <p>Visual and interactive math learning tools for dyscalculia</p>
+      <h1>Diskalkuli Öğrenme Araçları</h1>
+      <p>Diskalkuli için görsel ve interaktif matematik öğrenme araçları</p>
     </div>
     
     <!-- AI Math Assistant (Main Focus) -->
     <div class="content-section">
       <div class="ai-support">
-        <h2>AI Math Assistant</h2>
-        <p>Get personalized help with math concepts and problems</p>
+        <h2>Yapay Zeka Matematik Asistanı</h2>
+        <p>Matematik kavramları ve problemleri için kişiselleştirilmiş yardım alın</p>
         
         <div class="ai-input">
           <textarea 
             v-model="aiPrompt" 
-            placeholder="Describe a math problem you're working on, or ask for help with a math concept..."
+            placeholder="Üzerinde çalıştığınız matematik problemini açıklayın veya bir matematik kavramı hakkında yardım isteyin..."
             rows="4"
           ></textarea>
           
@@ -22,31 +22,31 @@
             <div class="help-options">
               <label>
                 <input type="checkbox" v-model="aiOptions.visual">
-                Include visual explanations
+                Görsel açıklamalar ekle
               </label>
               <label>
                 <input type="checkbox" v-model="aiOptions.stepByStep">
-                Show step-by-step solution
+                Adım adım çözüm göster
               </label>
               <label>
                 <input type="checkbox" v-model="aiOptions.simplified">
-                Use simplified language
+                Basitleştirilmiş dil kullan
               </label>
             </div>
             
             <button @click="getAIHelp" :disabled="!aiPrompt.trim() || isLoadingAI">
-              Get Math Help
+              Matematik Yardımı Al
             </button>
           </div>
         </div>
         
         <div v-if="isLoadingAI" class="loading">
           <div class="loading-spinner"></div>
-          <p>Processing your request...</p>
+          <p>İsteğiniz işleniyor...</p>
         </div>
         
         <div v-if="aiResponse" class="ai-response">
-          <h3>Math Assistant Response</h3>
+          <h3>Matematik Asistanı Yanıtı</h3>
           <div v-html="aiResponse"></div>
         </div>
       </div>
@@ -55,8 +55,8 @@
     <!-- Interactive Math Tools (Secondary) -->
     <div class="content-section">
       <div class="math-tools">
-        <h2>Visual Number Tools</h2>
-        <p>Explore numbers with visual representations to build number sense</p>
+        <h2>Görsel Sayı Araçları</h2>
+        <p>Sayı algısı geliştirmek için görsel temsillerle sayıları keşfedin</p>
         
         <div class="tools-tabs">
           <button 
@@ -324,17 +324,16 @@ export default {
       aiResponse: null,
       isLoadingAI: false,
       aiOptions: {
-        visual: true,        // Include visual explanations by default
-        stepByStep: true,    // Show step-by-step solutions by default
-        simplified: false    // Use simplified language (optional)
+        visual: true,
+        stepByStep: true,
+        simplified: false
       },
       
-      // Math tools variables
       activeToolTab: 'numberLine',
       toolTabs: [
-        { id: 'numberLine', name: 'Number Line' },
-        { id: 'countingBlocks', name: 'Counting Blocks' },
-        { id: 'fractions', name: 'Fractions' }
+        { id: 'numberLine', name: 'Sayı Doğrusu' },
+        { id: 'countingBlocks', name: 'Sayma Blokları' },
+        { id: 'fractions', name: 'Kesirler' }
       ],
       
       // Number Line Tool
@@ -530,14 +529,13 @@ export default {
       this.isLoadingAI = true;
       
       try {
-        // Create a prompt that specifies the needs of someone with dyscalculia
-        const prompt = `Please explain this math concept or solve this problem for someone with dyscalculia: ${this.aiPrompt}
+        const prompt = `Lütfen bu matematik kavramını veya problemi diskalkuli olan birisi için açıklayın: ${this.aiPrompt}
         
-        ${this.aiOptions.visual ? 'Include visual explanations using text-based diagrams or descriptions.' : ''}
-        ${this.aiOptions.stepByStep ? 'Show all steps clearly with explanations for each step.' : ''}
-        ${this.aiOptions.simplified ? 'Use simplified language and avoid complex math terminology where possible.' : ''}
+        ${this.aiOptions.visual ? 'Metin tabanlı şemalar veya açıklamalar kullanarak görsel açıklamalar ekleyin.' : ''}
+        ${this.aiOptions.stepByStep ? 'Tüm adımları her adım için açıklamalı olarak açıkça gösterin.' : ''}
+        ${this.aiOptions.simplified ? 'Basitleştirilmiş dil kullanın ve mümkünse karmaşık matematik terminolojisinden kaçının.' : ''}
         
-        Focus on building number sense, make connections to real-world examples, and use concrete representations.`;
+        Sayı algısı oluşturmaya odaklanın, gerçek dünya örnekleriyle bağlantılar kurun ve somut temsiller kullanın. Yanıtınızı Türkçe olarak verin.`;
         
         const response = await axios.post('/api/assistant', {
           prompt: prompt,
@@ -545,18 +543,18 @@ export default {
             visual_aids: this.aiOptions.visual,
             structured_format: this.aiOptions.stepByStep,
             simplified_language: this.aiOptions.simplified
-          }
+          },
+          language: 'tr'
         });
         
-        // Clean up the response by removing code block markers
         let cleanedResponse = response.data.response;
         cleanedResponse = cleanedResponse.replace(/```html/g, '');
         cleanedResponse = cleanedResponse.replace(/```/g, '');
         
         this.aiResponse = cleanedResponse;
       } catch (error) {
-        console.error('Error getting AI help:', error);
-        this.aiResponse = '<p>Sorry, there was an error processing your request. Please try again.</p>';
+        console.error('AI yardımı alınırken hata:', error);
+        this.aiResponse = '<p>Üzgünüz, isteğinizi işlerken bir hata oluştu. Lütfen tekrar deneyin.</p>';
       } finally {
         this.isLoadingAI = false;
       }

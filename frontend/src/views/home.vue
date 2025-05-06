@@ -1,8 +1,8 @@
 <template>
   <div class="home">
     <div class="welcome-content">
-      <h1>Welcome to NeuroLearn</h1>
-      <p>Your personalized learning platform adapted for neurodivergent minds</p>
+      <h1>NeuroLearn'e Hoş Geldiniz!</h1>
+      <p>Nöroçeşitli zihinler için özelleştirilmiş öğrenme platformunuz</p>
     </div>
   </div>
 </template>

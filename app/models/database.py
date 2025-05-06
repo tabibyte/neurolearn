@@ -4,10 +4,9 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-# For a quick demo, we'll use SQLite
+
 SQLALCHEMY_DATABASE_URL = "sqlite:///./neurolearn.db"
 
 engine = create_engine(
@@ -16,14 +15,11 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Import the Base from models
 from .models import Base
 
-# Create tables in the database
 def create_tables():
     Base.metadata.create_all(bind=engine)
-
-# Dependency to get DB session
+    
 def get_db():
     db = SessionLocal()
     try:

@@ -12,12 +12,11 @@ class LearningResource(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
-    resource_type = Column(String(50), nullable=False)  # e.g., text, video, interactive
+    resource_type = Column(String(50), nullable=False) 
     difficulty_level = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     is_sample = Column(Boolean, default=False)
     
-    # Fields to handle different learning preferences
     has_visual_aids = Column(Boolean, default=False)
     has_audio = Column(Boolean, default=False)
     has_simplified_text = Column(Boolean, default=False)

@@ -1,18 +1,18 @@
 <template>
   <div class="dyslexia-container">
     <div class="page-header">
-      <h1>Dyslexia Learning Tools</h1>
-      <p>Resources and tools adapted for readers with dyslexia</p>
+      <h1>Disleksi Öğrenme Araçları</h1>
+      <p>Disleksi olan okuyucular için uyarlanmış kaynaklar ve araçlar</p>
     </div>
     
     <div class="content-section">
       <div class="reading-tools">
         <!-- Reading Settings Panel - Unchanged -->
         <div class="tool-controls">
-          <h3>Reading Settings</h3>
+          <h3>Okuma Ayarları</h3>
           
           <div class="control-group">
-            <label>Font Family</label>
+            <label>Yazı Fontu</label>
             <select v-model="settings.fontFamily">
               <option value="OpenDyslexic">OpenDyslexic</option>
               <option value="Arial">Arial</option>
@@ -22,7 +22,7 @@
           </div>
           
           <div class="control-group">
-            <label>Font Size</label>
+            <label>Yazı Boyutu</label>
             <div class="slider-container">
               <input type="range" min="14" max="32" v-model="settings.fontSize">
               <span>{{ settings.fontSize }}px</span>
@@ -30,7 +30,7 @@
           </div>
           
           <div class="control-group">
-            <label>Line Spacing</label>
+            <label>Satır Aralığı</label>
             <div class="slider-container">
               <input type="range" min="1" max="3" step="0.1" v-model="settings.lineSpacing">
               <span>{{ settings.lineSpacing }}</span>
@@ -38,7 +38,7 @@
           </div>
           
           <div class="control-group">
-            <label>Background Color</label>
+            <label>Arka Plan Rengi</label>
             <div class="color-options">
               <div 
                 v-for="color in backgroundColors" 
@@ -53,16 +53,16 @@
         
         <!-- AI Reading Assistant (Replacing the sample text card) -->
         <div class="reading-input">
-          <h3>AI Reading Assistant</h3>
+          <h3>Yapay Zeka Okuma Asistanı</h3>
           
           <textarea 
             v-model="userText" 
-            placeholder="Paste or type your text here to see it with your selected settings..."
+            placeholder="Seçtiğiniz ayarlarla görmek için metninizi buraya yapıştırın veya yazın..."
             rows="6"
           ></textarea>
           
           <div class="ai-options">
-            <p>Optional: Select one AI processing option</p>
+            <p>İsteğe bağlı: Bir yapay zeka işleme seçeneği seçin</p>
             <div class="radio-options">
               <label v-for="option in assistanceOptions" :key="option.id" class="radio-label">
                 <input 
@@ -81,7 +81,7 @@
             class="submit-btn" 
             :disabled="!userText.trim() || isLoading"
           >
-            Process Text
+            Metni İşle
           </button>
         </div>
       </div>
@@ -90,11 +90,11 @@
     <!-- Results Section -->
     <div class="content-section" v-if="processedText">
       <div class="results-section">
-        <h2>Your Text</h2>
+        <h2>Metniniz</h2>
         
         <div v-if="isLoading" class="loading">
           <div class="loading-spinner"></div>
-          <p>Processing your request...</p>
+          <p>İsteğiniz işleniyor...</p>
         </div>
         
         <div v-else class="processed-text" :style="readingStyle">
@@ -119,21 +119,21 @@ export default {
         backgroundColor: '#f0f8ff'  // Light blue default
       },
       backgroundColors: [
-        { name: 'Light Blue', value: '#f0f8ff' },
-        { name: 'Cream', value: '#faf5e9' },
-        { name: 'Mint', value: '#f1faee' },
-        { name: 'Lavender', value: '#f0e8fa' },
-        { name: 'White', value: '#ffffff' }
+        { name: 'Açık Mavi', value: '#f0f8ff' },
+        { name: 'Krem', value: '#faf5e9' },
+        { name: 'Nane', value: '#f1faee' },
+        { name: 'Lavanta', value: '#f0e8fa' },
+        { name: 'Beyaz', value: '#ffffff' }
       ],
       userText: '',
       processedText: '',
       isLoading: false,
-      selectedAIOption: '', // Will store the selected AI option id
+      selectedAIOption: '', 
       assistanceOptions: [
-        { id: 'simplify', label: 'Simplify This Text' },
-        { id: 'summarize', label: 'Summarize Key Points' },
-        { id: 'explain', label: 'Explain Difficult Words' },
-        { id: 'visualize', label: 'Create Visual Memory Aids' }
+        { id: 'simplify', label: 'Basitleştir' },
+        { id: 'summarize', label: 'Özetle' },
+        { id: 'explain', label: 'Zor Kelimeleri Açıkla' },
+        { id: 'visualize', label: 'Görsel Hafıza Yardımcıları Oluştur' }
       ]
     }
   },
@@ -155,7 +155,7 @@ export default {
       
       this.isLoading = true;
       
-      // If no AI option is selected, just show the text with current reading settings
+
       if (!this.selectedAIOption) {
         this.processedText = `<p>${this.userText.replace(/\n/g, '</p><p>')}</p>`;
         this.isLoading = false;
@@ -163,7 +163,6 @@ export default {
       }
       
       try {
-        // Build prompt based on the selected assistance option
         let prompt = '';
         let preferences = {
           visual_aids: false,
@@ -173,37 +172,40 @@ export default {
         
         switch(this.selectedAIOption) {
           case 'simplify':
-            prompt = `Simplify the following text for a reader with dyslexia, using shorter sentences and simpler vocabulary: "${this.userText}"`;
+            prompt = `Aşağıdaki metni disleksi olan bir okuyucu için daha kısa cümleler ve daha basit kelimeler kullanarak basitleştiriniz: "${this.userText}"`;
             preferences.simplified_language = true;
             break;
           case 'summarize':
-            prompt = `Summarize the key points of this text in a clear, structured way for a reader with dyslexia: "${this.userText}"`;
+            prompt = `Bu metnin ana noktalarını disleksi olan bir okuyucu için net ve yapılandırılmış bir şekilde özetleyiniz: "${this.userText}"`;
             preferences.structured_format = true;
             break;
           case 'explain':
-            prompt = `Identify and explain any difficult words or concepts in this text in a dyslexia-friendly way: "${this.userText}"`;
+            prompt = `Bu metindeki zor kelimeleri veya kavramları disleksi dostu bir şekilde belirleyiniz ve açıklayınız: "${this.userText}"`;
             preferences.simplified_language = true;
             break;
           case 'visualize':
-            prompt = `Create text-based visual memory aids or mnemonic devices to help remember key information in this text: "${this.userText}"`;
+            prompt = `Bu metindeki önemli bilgileri hatırlamaya yardımcı olacak metin tabanlı görsel hafıza yardımcıları veya anımsatıcı teknikler oluşturunuz: "${this.userText}"`;
             preferences.visual_aids = true;
             break;
         }
         
+
+        prompt += " Lütfen yanıtınızı Türkçe olarak veriniz.";
+        
         const response = await axios.post('/api/assistant', {
           prompt,
-          learning_preferences: preferences
+          learning_preferences: preferences,
+          language: "tr" 
         });
         
-        // Clean up the response by removing code block markers
         let cleanedResponse = response.data.response;
         cleanedResponse = cleanedResponse.replace(/```html/g, '');
         cleanedResponse = cleanedResponse.replace(/```/g, '');
         
         this.processedText = cleanedResponse;
       } catch (error) {
-        console.error('Error processing text:', error);
-        this.processedText = '<p>Sorry, there was an error processing your request. Please try again later.</p>';
+        console.error('Metin işlenirken hata oluştu:', error);
+        this.processedText = '<p>Üzgünüz, isteğinizi işlerken bir hata oluştu. Lütfen daha sonra tekrar deneyin.</p>';
       } finally {
         this.isLoading = false;
       }

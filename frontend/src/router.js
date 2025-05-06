@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// Import views
 import Home from './views/home.vue'
 import Dyslexia from './views/dyslexia.vue'
 import ADHD from './views/adhd.vue'

@@ -5,7 +5,6 @@ from ..services.gemini_service import GeminiService
 
 router = APIRouter()
 
-# Initialize the Gemini service
 gemini_service = GeminiService()
 
 class AIAssistantRequest(BaseModel):
